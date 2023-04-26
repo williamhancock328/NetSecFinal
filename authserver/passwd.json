@@ -1,0 +1,22 @@
+{
+   "entries" : [
+      {
+         "salt" : "eYvyYjOEq7pn9XayrYnN+w==",
+         "pass" : "EnS7y7TFABdCw3Phou8quQ==",
+         "totp-key" : "bdBbsg97DtC+L95pk0OQh3ZHrW0Mreo9ds+HNA5laXlTjBpRR2F3HCl46x6OAdoCF69jSqNsDePpAb/a468x2g==",
+         "user" : "alice"
+      },
+      {
+         "salt" : "UQpPAQ9nYCChCEmyR9tSUQ==",
+         "pass" : "jcFeHSWpUVoDGyfwJYmGsw==",
+         "totp-key" : "WvuLr8ci/yhwwEVRiVeA4UphPRXA6qXgsW/fyWJRDyjaoMz6YbdsNlieTc91qXnFOQruT0O/qKTYLtNWiuPyFw==",
+         "user" : "zack"
+      },
+      {
+         "salt" : "k4zDLJvRlwHgnBSBMKCRWg==",
+         "pass" : "jZHnKl4BdLIehRrnR1P3Iw==",
+         "totp-key" : "nY0b8Z8Gqm1oUMaTRgewYEIJe5V/8FdFfI6KhX9qbYjb4F+FkIHg8XSkeWD92Agj5b25gpSW4/iHunDmCkHScw==",
+         "user" : "will"
+      }
+   ]
+}
