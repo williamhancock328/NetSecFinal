@@ -5,12 +5,13 @@ import java.util.Arrays;
 /**
  * Represents the type of packet being sent/received
  * Uses for determining responses & information.
- * @author Alexander Elguezabal
+ * @author Alex
  */
 public enum PacketType {
     
-      AuthenticatingRequest(packets.AuthenticatingRequest.class),
-      AuthenticatingResponse(packets.AuthenticatingResponse.class)
+      EnrollRequest(packets.EnrollRequest.class),
+      AuthRequest(packets.AuthRequest.class),
+      ServerResponse(packets.ServerResponse.class),
       ;
 
       

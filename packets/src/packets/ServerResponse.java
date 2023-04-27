@@ -1,7 +1,9 @@
 package packets;
 
+import packets.PacketType;
 import packets.Packet;
 import java.io.InvalidObjectException;
+import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import merrimackutil.json.JSONSerializable;
@@ -11,34 +13,43 @@ import merrimackutil.json.types.JSONType;
 
 /**
  *
- * @author Alexander Elguezabal
+ * @author William Hancock
  */
-public class AuthenticatingResponse implements Packet, JSONSerializable {
+public class ServerResponse implements Packet, JSONSerializable {
         
     // Packet Type
-    private static final PacketType PACKET_TYPE = PacketType.AuthenticatingResponse;
+    private static final PacketType PACKET_TYPE = PacketType.ServerResponse;
     
     // Packet Data
     private boolean status;
-    private String statusMessage;
+    private String payload;
 
     /**
-     * Default Constructor for a SessionKeyResponse
-     * @param nonce
+     * Constructs a new ServerResponse packet
+     * @param user
+     * @param pass
+     * @param opt 
      */
-    public AuthenticatingResponse(boolean status, String statusMessage) {
+    public ServerResponse(boolean status, String payload) {
         this.status = status;
-        this.statusMessage = statusMessage;
+        this.payload = payload;
     }
 
-    
     /**
      * Converts a JSONObject into a ticket object
      * @param packet byte[] of information representing this packet
      * @throws InvalidObjectException Thrown if {@code object} is not a Ticket JSONObject
      */
-    public AuthenticatingResponse(String packet, PacketType packetType) throws InvalidObjectException {
+    public ServerResponse(String packet, PacketType packetType1) throws InvalidObjectException {
         recieve(packet);
+    }
+
+    public boolean getStatus() {
+        return status;
+    }
+
+    public String getPayload() {
+        return payload;
     }
 
     /**
@@ -70,14 +81,14 @@ public class AuthenticatingResponse implements Packet, JSONSerializable {
             if (tmp.containsKey("status"))
               this.status = tmp.getBoolean("status");
             else
-              throw new InvalidObjectException("Expected an AuthenticatingResponse object -- status expected.");
-            if (tmp.containsKey("statusMessage"))
-              this.statusMessage = tmp.getString("statusMessage");
+              throw new InvalidObjectException("Expected an Ticket object -- status expected.");
+            if (tmp.containsKey("payload"))
+              this.payload = tmp.getString("payload");
             else
-              throw new InvalidObjectException("Expected an AuthenticatingResponse object -- statusMessage expected.");
+              throw new InvalidObjectException("Expected an Ticket object -- payload expected.");
           }
           else 
-            throw new InvalidObjectException("Expected a AuthenticatingResponse - Type JSONObject not found.");
+            throw new InvalidObjectException("Expected a Ticket - Type JSONObject not found.");
     }
 
     /**
@@ -88,8 +99,9 @@ public class AuthenticatingResponse implements Packet, JSONSerializable {
     public JSONType toJSONType() {
         JSONObject object = new JSONObject();
         object.put("packetType", PACKET_TYPE.toString());
-        object.put("status", this.isStatus());
-        object.put("statusMessage", this.getStatusMessage());
+        object.put("status", this.status);
+        object.put("payload", this.payload);
+        
 
         return object;
     }
@@ -122,11 +134,11 @@ public class AuthenticatingResponse implements Packet, JSONSerializable {
              JSONObject jsonObject = JsonIO.readObject(packet); // String to JSONObject
              deserialize(jsonObject); // Deserialize jsonObject
         } catch (InvalidObjectException ex) {
-            Logger.getLogger(AuthenticatingResponse.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ServerResponse.class.getName()).log(Level.SEVERE, null, ex);
         }
         
     }
-
+    
     /**
      * The PacketType value of this packet.
      * @return 
@@ -135,21 +147,5 @@ public class AuthenticatingResponse implements Packet, JSONSerializable {
     public PacketType getType() {
         return PACKET_TYPE;
     }
-
-    /**
-     * @return the status
-     */
-    public boolean isStatus() {
-        return status;
-    }
-
-    /**
-     * @return the statusMessage
-     */
-    public String getStatusMessage() {
-        return statusMessage;
-    }
-
-    
     
 }

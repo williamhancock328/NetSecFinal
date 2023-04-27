@@ -1,10 +1,10 @@
 package twoauth;
 
-import communication.AuthRequest;
+import packets.AuthRequest;
 import communication.Communication;
-import communication.Packet;
-import communication.EnrollRequest;
-import communication.ServerResponse;
+import packets.Packet;
+import packets.EnrollRequest;
+import packets.ServerResponse;
 import config.Config;
 import java.io.FileNotFoundException;
 import java.io.IOException;

@@ -1,7 +1,7 @@
 package packets;
 
-import packets.Packet;
 import java.io.InvalidObjectException;
+import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import merrimackutil.json.JSONSerializable;
@@ -11,35 +11,49 @@ import merrimackutil.json.types.JSONType;
 
 /**
  *
- * @author Alexander Elguezabal
+ * @author William Hancock
  */
-public class AuthenticatingRequest implements Packet, JSONSerializable {
+public class AuthRequest implements Packet, JSONSerializable {
         
     // Packet Type
-    private static final PacketType PACKET_TYPE = PacketType.AuthenticatingRequest;
+    private static final PacketType PACKET_TYPE = PacketType.AuthRequest;
     
     // Packet Data
     private String user;
     private String pass;
-    private String otp;
+    private int otp;
 
     /**
-     * Default Constructor for a SessionKeyResponse
-     * @param nonce
+     * Constructs a new AuthRequest packet
+     * @param user
+     * @param pass
+     * @param opt 
      */
-    public AuthenticatingRequest(String user, String pass, String otp) {
+    public AuthRequest(String user, String pass, int opt) {
         this.user = user;
         this.pass = pass;
-        this.otp = otp;
+        this.otp = opt;
     }
 
-    
+    public String getUser() {
+        return user;
+    }
+
+    public String getPass() {
+        return pass;
+    }
+
+    public int getOtp() {
+        return otp;
+    }
+
+
     /**
      * Converts a JSONObject into a ticket object
      * @param packet byte[] of information representing this packet
      * @throws InvalidObjectException Thrown if {@code object} is not a Ticket JSONObject
      */
-    public AuthenticatingRequest(String packet, PacketType packetType) throws InvalidObjectException {
+    public AuthRequest(String packet, PacketType packetType1) throws InvalidObjectException {
         recieve(packet);
     }
 
@@ -72,18 +86,18 @@ public class AuthenticatingRequest implements Packet, JSONSerializable {
             if (tmp.containsKey("user"))
               this.user = tmp.getString("user");
             else
-              throw new InvalidObjectException("Expected an AuthenticatingRequest object -- user expected.");
+              throw new InvalidObjectException("Expected an Ticket object -- user expected.");
             if (tmp.containsKey("pass"))
               this.pass = tmp.getString("pass");
             else
-              throw new InvalidObjectException("Expected an AuthenticatingRequest object -- pass expected.");
+              throw new InvalidObjectException("Expected an Ticket object -- pass expected.");
             if (tmp.containsKey("otp"))
-              this.otp = tmp.getString("otp");
+              this.otp = tmp.getInt("otp");
             else
-              throw new InvalidObjectException("Expected an AuthenticatingRequest object -- otp expected.");
+              throw new InvalidObjectException("Expected an Ticket object -- otp expected.");
           }
           else 
-            throw new InvalidObjectException("Expected a AuthenticatingRequest - Type JSONObject not found.");
+            throw new InvalidObjectException("Expected a Ticket - Type JSONObject not found.");
     }
 
     /**
@@ -129,11 +143,10 @@ public class AuthenticatingRequest implements Packet, JSONSerializable {
              JSONObject jsonObject = JsonIO.readObject(packet); // String to JSONObject
              deserialize(jsonObject); // Deserialize jsonObject
         } catch (InvalidObjectException ex) {
-            Logger.getLogger(AuthenticatingRequest.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AuthRequest.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
     }
-
+    
     /**
      * The PacketType value of this packet.
      * @return 
@@ -142,26 +155,4 @@ public class AuthenticatingRequest implements Packet, JSONSerializable {
     public PacketType getType() {
         return PACKET_TYPE;
     }
-
-    /**
-     * @return the user
-     */
-    public String getUser() {
-        return user;
-    }
-
-    /**
-     * @return the pass
-     */
-    public String getPass() {
-        return pass;
-    }
-    
-    /**
-     * @return OTP encoded as a String.
-     */
-    public String getOTP() {
-        return otp;
-    }
-    
 }

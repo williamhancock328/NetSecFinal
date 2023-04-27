@@ -2,7 +2,7 @@ package packets;
 
 /**
  * Interface for all packet classes.
- * @author Alexander Elguezabal
+ * @author Alex
  */
 public interface Packet {
     

@@ -9,3 +9,9 @@
 /packets/TCPPackets/nbproject/private/
 /packets/nbproject/private/
 /client/nbproject/private/
+/packets/dist/
+/packets/build/
+/authserver/build/
+/authserver/dist/
+/client/build/
+/client/dist/
