@@ -12,6 +12,7 @@ public enum PacketType {
       EnrollRequest(packets.EnrollRequest.class),
       AuthRequest(packets.AuthRequest.class),
       ServerResponse(packets.ServerResponse.class),
+      FileUpload(packets.filepack.FileUpload.class),
       ;
 
       

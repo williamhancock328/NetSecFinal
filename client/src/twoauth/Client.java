@@ -128,5 +128,19 @@ public class Client {
         }
         
     }
+    
+    /**
+     * Method used to upload a file
+     * 
+     * @param host
+     * @param pass
+     * @param port
+     * @param user
+     * @param ticketString
+     * @param filepath 
+     */
+    private static void uploadFile(String host, String pass, String port, String user, String ticketString, String filepath) {
+        
+    }
 
 }
