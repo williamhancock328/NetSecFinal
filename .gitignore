@@ -16,3 +16,4 @@
 /client/build/
 /client/dist/
 /server/nbproject/private/
+cloudserver/nbproject/private/private.properties

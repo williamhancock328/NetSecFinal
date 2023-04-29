@@ -145,6 +145,7 @@ public class Server {
                         if (t.CheckOtp()) {
                             ServerResponse authres = new ServerResponse(true, "");
                             send(authres, sock);
+                            //authorization is successful
                             break;
                         } else {
                             ServerResponse authres = new ServerResponse(false, "Authentication failed.");
