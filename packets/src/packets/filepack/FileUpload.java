@@ -54,7 +54,7 @@ public class FileUpload implements Packet, JSONSerializable {
      * @param packet byte[] of information representing this packet
      * @throws InvalidObjectException Thrown if {@code object} is not a Ticket JSONObject
      */
-    public AuthRequest(String packet, PacketType packetType1) throws InvalidObjectException {
+    public FileUpload(String packet, PacketType packetType1) throws InvalidObjectException {
         recieve(packet);
     }
 

@@ -1,5 +1,5 @@
-cd server/dist
+cd cloudserver
 
-java -jar server.jar -c ../config.json
+java -jar dist/cloudserver.jar -c config.json
 
 pause
