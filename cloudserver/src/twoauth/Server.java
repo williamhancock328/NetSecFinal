@@ -30,6 +30,7 @@ import merrimackutil.codec.Base32;
 
 /**
  * The server class for the TwoAuth system.
+ *
  * @author willi
  */
 public class Server {

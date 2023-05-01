@@ -87,18 +87,23 @@ public class Client {
                         if (Objects.equals(opt.getFirst(), 'f')) {
                             System.out.println("adding a file. ");
                             //get the password from the console.
-                        Console console = System.console();
-                        String pass = new String(console.readPassword("Enter password:"));
-                        //get the otp from the console.
-                        System.out.print("Enter OTP: ");
-                        Scanner in = new Scanner(System.in);
-                        int otp = in.nextInt();
-                        if (auth(host, pass, port, user, otp)) {
+                            Console console = System.console();
+                            String pass = new String(console.readPassword("Enter password:"));
+                            //get the otp from the console.
+                            System.out.print("Enter OTP: ");
+                            Scanner in = new Scanner(System.in);
+                            int otp;
+                            while (!in.hasNextInt()) {
+                                System.out.println("Authentication failed.");
+                                System.exit(0);
+                            }
+                            otp = in.nextInt();
+                            if (auth(host, pass, port, user, otp)) {
 
-                        } else {
-                            System.out.println("Authentication failed.");
-                            System.exit(0);
-                        }
+                            } else {
+                                System.out.println("Authentication failed.");
+                                System.exit(0);
+                            }
                         }
                     }
                 }
@@ -117,18 +122,18 @@ public class Client {
                         if (Objects.equals(opt.getFirst(), 'f')) {
                             System.out.println("dl a file. ");
                             //get the password from the console.
-                        Console console = System.console();
-                        String pass = new String(console.readPassword("Enter password:"));
-                        //get the otp from the console.
-                        System.out.print("Enter OTP: ");
-                        Scanner in = new Scanner(System.in);
-                        int otp = in.nextInt();
-                        if (auth(host, pass, port, user, otp)) {
+                            Console console = System.console();
+                            String pass = new String(console.readPassword("Enter password:"));
+                            //get the otp from the console.
+                            System.out.print("Enter OTP: ");
+                            Scanner in = new Scanner(System.in);
+                            int otp = in.nextInt();
+                            if (auth(host, pass, port, user, otp)) {
 
-                        } else {
-                            System.out.println("Authentication failed.");
-                            System.exit(0);
-                        }
+                            } else {
+                                System.out.println("Authentication failed.");
+                                System.exit(0);
+                            }
                         }
                     }
                 }
