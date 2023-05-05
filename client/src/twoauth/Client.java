@@ -40,9 +40,10 @@ public class Client {
     private static String port;
     private static String pass;
     private static String user;
+    Console console = System.console();
     private static NonceCache nc = new NonceCache(32, 30);
     private static byte[] sessionKeyClient;
-    private static String service;
+    private static String service = "cloudservice";
 
 
     /**
@@ -63,7 +64,8 @@ public class Client {
         System.out.println("1. Create a new user");
         System.out.println("2. Login as an existing user");
         System.out.println("3. Exit");
-        int input = scanner.nextInt();
+        Scanner scanner2 = new Scanner(System.in);
+        int input = scanner2.nextInt();
         switch(input){
             case 1:
                 System.out.println("Please enter the username you would like to use: ");
@@ -77,10 +79,11 @@ public class Client {
                 pass = new String(console.readPassword("Enter password:"));
                 System.out.println("Please enter your one time password: ");
                 int otp = scanner.nextInt();
-                if(auth(user, pass, pass, user, otp)){
+                if(auth(user, pass, port, user, otp)){
                     System.out.println("");
                     config = new Config(host);
                     Ticket tik = SessionKeyRequest();
+                    System.out.println("Now we have the ticket.");
                 }
                 else{
                     System.out.println("Login failed.");
