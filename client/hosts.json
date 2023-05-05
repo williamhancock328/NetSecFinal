@@ -1,0 +1,14 @@
+{
+  "hosts": [
+    {
+      "host-name" : "kdcd",
+      "address" : "127.0.0.1",
+      "port" : 5000
+    },
+    {
+      "host-name" : "echoservice",
+      "address" : "127.0.0.1",
+      "port" : 5001
+    }
+  ]
+}

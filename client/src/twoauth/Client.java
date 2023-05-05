@@ -1,5 +1,8 @@
 package twoauth;
 
+import ClientServerCrypto.ClientMasterKeyDecryption;
+import ClientServerCrypto.ClientSessionKeyDecryption;
+import ClientServerCrypto.ClientSessionKeyEncryption;
 import packets.*;
 import java.util.Objects;
 import javax.net.ssl.SSLSocket;
@@ -7,9 +10,23 @@ import merrimackutil.cli.LongOption;
 import merrimackutil.cli.OptionParser;
 import merrimackutil.util.Tuple;
 import communication.*;
+import conf.Config;
+import conf.Host;
 import java.io.Console;
 import java.io.IOException;
+import java.net.Socket;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.Scanner;
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import merrimackutil.util.NonceCache;
 
 /**
  *
@@ -17,18 +34,26 @@ import java.util.Scanner;
  */
 public class Client {
 
+    public static ArrayList<Host> hosts = new ArrayList<>();
+    private static Config config;
     private static String host;
     private static String port;
+    private static String pass;
+    private static String user;
+    private static NonceCache nc = new NonceCache(32, 30);
+    private static byte[] sessionKeyClient;
+    private static String service;
+
 
     /**
      * The client for the file sharing system.
      *
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws IOException, NoSuchMethodException {
+    public static void main(String[] args) throws IOException, NoSuchMethodException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException {
         //print a welcome message then a menu with the options to create a user, download a file, upload a file, manage tags, and search for files by tag
         System.out.println("Welcome to the File Sharing System!");
-        System.out.println("Please enter the host you would like to connect to: ");
+        System.out.println("Please enter the hosts file name.");
         Console console = System.console();
         Scanner scanner = new Scanner(System.in);
         host = scanner.nextLine();
@@ -48,49 +73,14 @@ public class Client {
                 break;
             case 2:
                 System.out.println("Please enter your username: ");
-                String user = scanner.nextLine();
-                String pass = new String(console.readPassword("Enter password:"));
+                user = scanner.nextLine();
+                pass = new String(console.readPassword("Enter password:"));
                 System.out.println("Please enter your one time password: ");
                 int otp = scanner.nextInt();
                 if(auth(user, pass, pass, user, otp)){
-                    System.out.println("Login successful!");
-                    System.out.println("Main Menu:");
-                    System.out.println("1. Upload a file");
-                    System.out.println("2. Download a file");
-                    System.out.println("3. Manage tags");
-                    System.out.println("4. Search for files by tag");
-                    System.out.println("5. Exit");
-                    int input2 = scanner.nextInt();
-                    switch(input2){
-                        case 1:
-                            System.out.println("Please enter the filepath of the file you would like to upload: ");
-                            String filepath = scanner.nextLine();
-                            System.out.println("Please enter the tags you would like to use for this file: ");
-                            String tags = scanner.nextLine();
-                            uploadFile(host, pass, port, user, null, tags.split(" "), filepath);
-                            break;
-                        case 2:
-                            downloadFile(host, pass, port, user, null, filename, filepath2);
-                            break;
-                        case 3:
-                            System.out.println("Please enter the name of the file you would like to manage tags for: ");
-                            String filename2 = scanner.nextLine();
-                            System.out.println("Please enter the tags you would like to use for this file: ");
-                            String tags2 = scanner.nextLine();
-                            manageTags(host, pass, port, user, null, filename2, tags2.split(" "));
-                            break;
-                        case 4:
-                            System.out.println("Please enter the tags you would like to search for: ");
-                            String tags3 = scanner.nextLine();
-                            searchTags(host, pass, port, user, null, tags3.split(" "));
-                            break;
-                        case 5:
-                            System.exit(0);
-                            break;
-                        default:
-                            System.out.println("Invalid input.");
-                            break;
-                    }
+                    System.out.println("");
+                    config = new Config(host);
+                    Ticket tik = SessionKeyRequest();
                 }
                 else{
                     System.out.println("Login failed.");
@@ -162,5 +152,95 @@ public class Client {
 
     }
 
+    private static Host getHost(String host_name) {
+        return hosts.stream().filter(n -> n.getHost_name().equalsIgnoreCase(host_name)).findFirst().orElse(null);
+    }
+    
+    private static Ticket SessionKeyRequest() throws IOException, NoSuchMethodException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException {
+        Host host = getHost("kdcd");
+
+        // MESSAGE 1: Client sends kdc username and service name
+        SessionKeyRequest req = new SessionKeyRequest(user, service); // Construct the packet
+        Socket socket = Communication.connectAndSend(host.getAddress(), host.getPort(), req); // Send the packet
+
+        // MESSAGE 2
+        SessionKeyResponse sessKeyResp_Packet = (SessionKeyResponse) Communication.read(socket); // Read for a packet  // KDC checks username validity and if valid, demands password and gives a nonce
+        System.out.println("IV");
+        System.out.println(sessKeyResp_Packet.getuIv());
+
+        System.out.println("Session key");
+        System.out.println(sessKeyResp_Packet.geteSKeyAlice());
+        System.out.println(sessKeyResp_Packet.getValidityTime());
+        System.out.println(sessKeyResp_Packet.getCreateTime());
+        System.out.println(sessKeyResp_Packet.getsName());
+        //alice's session key
+
+        sessionKeyClient = ClientMasterKeyDecryption.decrypt(sessKeyResp_Packet.geteSKeyAlice(), sessKeyResp_Packet.getuIv(), user, pass, sessKeyResp_Packet.getCreateTime(), sessKeyResp_Packet.getValidityTime(), sessKeyResp_Packet.getsName());
+        System.out.println("Client session key: " + Arrays.toString(sessionKeyClient));
+
+        //send a ticket
+        return new Ticket(sessKeyResp_Packet.getCreateTime(), sessKeyResp_Packet.getValidityTime(), sessKeyResp_Packet.getuName(), sessKeyResp_Packet.getsName(), sessKeyResp_Packet.getIv(), sessKeyResp_Packet.geteSKey());
+    }
+
+    private static boolean Handshake(Ticket in) throws IOException, NoSuchMethodException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
+        //Client connects to echoservice
+        Host host = getHost("echoservice");
+
+        // Get fresh nonce C
+        byte[] nonceCBytes = nc.getNonce();
+        // Convert nonceCBytes to Base64 string format
+        String nonceC = Base64.getEncoder().encodeToString(nonceCBytes);
+
+        // Serialize ticket that we will send
+        String tkt = in.serialize();
+
+        // MESSAGE 1: Client sends echoservice the nonce C and ticket
+        ClientHello hi = new ClientHello(nonceC, tkt); // Construct the packet
+        Socket socket = Communication.connectAndSend(host.getAddress(), host.getPort(), hi); // Send the packet
+
+        //MESSAGE 3: Recieved the server hello
+        ServerHello ServerHello_Packet = (ServerHello) Communication.read(socket);
+
+        System.out.println("ct: " + ServerHello_Packet.geteSKey());
+        System.out.println("iv: " + ServerHello_Packet.getIv());
+        System.out.println("user: " + user);
+        System.out.println("session name : " + ServerHello_Packet.getsName());    
+         System.out.println("session key: " + Base64.getEncoder().encodeToString(sessionKeyClient));
+        //Decrypt nonce c
+        byte[] checkNonceCBytes = ClientSessionKeyDecryption.decrypt(ServerHello_Packet.geteSKey(), ServerHello_Packet.getIv(), user, sessionKeyClient, ServerHello_Packet.getsName());
+        if (Arrays.equals(checkNonceCBytes, nonceCBytes)) {
+            // Get nonce S ready for encryption and add to cache
+            String stringNonceS = ServerHello_Packet.getNonce();
+            System.out.println(stringNonceS);
+            byte[] usedNonceSBytes = Base64.getDecoder().decode(stringNonceS);
+            nc.addNonce(usedNonceSBytes);
+            // Fresh nonce R
+            byte[] nonceBytesR = nc.getNonce();
+            String nonceR = Base64.getEncoder().encodeToString(nonceBytesR);
+
+            // Encrypt nonce S
+            byte[] encNonceS = ClientSessionKeyEncryption.encrypt(sessionKeyClient, usedNonceSBytes, user, ServerHello_Packet.getsName());
+            // Packet everything together to send to echo server
+            ClientResponse clientResponse_packet = new ClientResponse(nonceR, user, Base64.getEncoder().encodeToString(ClientSessionKeyEncryption.getRawIv()), Base64.getEncoder().encodeToString(encNonceS));
+
+            // Send packet off
+            Socket socket2 = Communication.connectAndSend(host.getAddress(), host.getPort(), clientResponse_packet);
+            //MESSAGE 4: Client recieves status
+            HandshakeStatus handshakeStatus_packet = (HandshakeStatus) Communication.read(socket2);
+            // If message returns true
+            if (handshakeStatus_packet.getMsg() == true) {
+                // Handshake protocol checks out
+                System.out.println("done");
+                return true;
+            } else {
+                //Otherwise false, exit system
+                System.exit(0);
+            }
+
+        }
+        return false;
+
+    }
+    
     
 }
