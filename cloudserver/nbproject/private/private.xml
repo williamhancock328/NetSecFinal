@@ -5,5 +5,9 @@
         <group>
             <file>file:/C:/Users/Mark%20Case/Desktop/Final_NetSec/cloudserver/src/twoauth/Server.java</file>
         </group>
+        <group name="current">
+            <file>file:/C:/Users/willi/Documents/NetBeansProjects/NetSecFinal/cloudserver/src/twoauth/Server.java</file>
+            <file>file:/C:/Users/willi/Documents/NetBeansProjects/NetSecFinal/cloudserver/src/config/Config.java</file>
+        </group>
     </open-files>
 </project-private>

@@ -1,0 +1,6 @@
+{
+  "port" : 5001,
+  "debug" : false,
+  "service-name" : "echoservice",
+  "service-secret" : "servicepass"
+}
