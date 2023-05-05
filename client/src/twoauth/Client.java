@@ -70,10 +70,6 @@ public class Client {
                             uploadFile(host, pass, port, user, null, tags.split(" "), filepath);
                             break;
                         case 2:
-                            System.out.println("Please enter the name of the file you would like to download: ");
-                            String filename = scanner.nextLine();
-                            System.out.println("Please enter the filepath you would like to download the file to: ");
-                            String filepath2 = scanner.nextLine();
                             downloadFile(host, pass, port, user, null, filename, filepath2);
                             break;
                         case 3:
