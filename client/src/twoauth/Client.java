@@ -17,7 +17,6 @@ import java.util.Scanner;
  */
 public class Client {
 
-    private static String user;
     private static String host;
     private static String port;
 
@@ -27,117 +26,86 @@ public class Client {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws IOException, NoSuchMethodException {
-        // Parse the command line arguments.
-        OptionParser op = new OptionParser(args);
-        LongOption[] ar = new LongOption[7];
-        ar[0] = new LongOption("create", false, 'c');
-        ar[1] = new LongOption("add", false, 'a');
-        ar[2] = new LongOption("download", false, 'd');
-        ar[3] = new LongOption("user", true, 'u');
-        ar[4] = new LongOption("host", true, 'h');
-        ar[5] = new LongOption("port", true, 'p');
-        ar[6] = new LongOption("file", true, 'f');
-        op.setLongOpts(ar);
-        op.setOptString("cadu:h:p:f:");
-        Tuple<Character, String> opt = op.getLongOpt(false);
-        if (opt == null) {
-            System.out.println("usage:\n"
-                    + "client --create --user <user> --host <host> --port <portnum>\n"
-                    + "client --add --user <user> --host <host> --port <portnum> --file <filename>\n"
-                    + "client --download --user <user> --host <host> --port <portnum>\n"
-                    + "options:\n"
-                    + "-c, --create Create a new account.\n"
-                    + "-a, --add Add a file.\n"
-                    + "-d, --download Download a file.\n"
-                    + "-u, --user The user name.\n"
-                    + "-h, --host The host name of the server.\n"
-                    + "-p, --port The port number for the server."
-                    + "-f  --file The name of the file to upload.");
-            System.exit(0);
-            //check if we are creating or authenticating.
-        } else if (Objects.equals(opt.getFirst(), 'c')) {
-            opt = op.getLongOpt(false);
-            if (Objects.equals(opt.getFirst(), 'u')) {
-                user = opt.getSecond();
-                opt = op.getLongOpt(false);
-                if (Objects.equals(opt.getFirst(), 'h')) {
-                    host = opt.getSecond();
-                    opt = op.getLongOpt(false);
-                    if (Objects.equals(opt.getFirst(), 'p')) {
-                        port = opt.getSecond();
-                        System.out.println("adduser");
-                        //get the password from the console.
-                        Console console = System.console();
-                        String pass = new String(console.readPassword("Enter password:"));
-                        create(host, pass, port, user);
+        //print a welcome message then a menu with the options to create a user, download a file, upload a file, manage tags, and search for files by tag
+        System.out.println("Welcome to the File Sharing System!");
+        System.out.println("Please enter the host you would like to connect to: ");
+        Console console = System.console();
+        Scanner scanner = new Scanner(System.in);
+        host = scanner.nextLine();
+        System.out.println("Please enter the port you would like to connect to: ");
+        port = scanner.nextLine();
+        System.out.println("Login Menu:");
+        System.out.println("1. Create a new user");
+        System.out.println("2. Login as an existing user");
+        System.out.println("3. Exit");
+        int input = scanner.nextInt();
+        switch(input){
+            case 1:
+                System.out.println("Please enter the username you would like to use: ");
+                String newuser = scanner.nextLine();
+                String newpass = new String(console.readPassword("Enter password:"));
+                create(host, newpass, port, newuser);
+                break;
+            case 2:
+                System.out.println("Please enter your username: ");
+                String user = scanner.nextLine();
+                String pass = new String(console.readPassword("Enter password:"));
+                System.out.println("Please enter your one time password: ");
+                int otp = scanner.nextInt();
+                if(auth(user, pass, pass, user, otp)){
+                    System.out.println("Login successful!");
+                    System.out.println("Main Menu:");
+                    System.out.println("1. Upload a file");
+                    System.out.println("2. Download a file");
+                    System.out.println("3. Manage tags");
+                    System.out.println("4. Search for files by tag");
+                    System.out.println("5. Exit");
+                    int input2 = scanner.nextInt();
+                    switch(input2){
+                        case 1:
+                            System.out.println("Please enter the filepath of the file you would like to upload: ");
+                            String filepath = scanner.nextLine();
+                            System.out.println("Please enter the tags you would like to use for this file: ");
+                            String tags = scanner.nextLine();
+                            uploadFile(host, pass, port, user, null, tags.split(" "), filepath);
+                            break;
+                        case 2:
+                            System.out.println("Please enter the name of the file you would like to download: ");
+                            String filename = scanner.nextLine();
+                            System.out.println("Please enter the filepath you would like to download the file to: ");
+                            String filepath2 = scanner.nextLine();
+                            downloadFile(host, pass, port, user, null, filename, filepath2);
+                            break;
+                        case 3:
+                            System.out.println("Please enter the name of the file you would like to manage tags for: ");
+                            String filename2 = scanner.nextLine();
+                            System.out.println("Please enter the tags you would like to use for this file: ");
+                            String tags2 = scanner.nextLine();
+                            manageTags(host, pass, port, user, null, filename2, tags2.split(" "));
+                            break;
+                        case 4:
+                            System.out.println("Please enter the tags you would like to search for: ");
+                            String tags3 = scanner.nextLine();
+                            searchTags(host, pass, port, user, null, tags3.split(" "));
+                            break;
+                        case 5:
+                            System.exit(0);
+                            break;
+                        default:
+                            System.out.println("Invalid input.");
+                            break;
                     }
                 }
-            }
-        } else if (Objects.equals(opt.getFirst(), 'a')) {
-            opt = op.getLongOpt(false);
-            if (Objects.equals(opt.getFirst(), 'u')) {
-                user = opt.getSecond();
-                opt = op.getLongOpt(false);
-                if (Objects.equals(opt.getFirst(), 'h')) {
-                    host = opt.getSecond();
-                    opt = op.getLongOpt(false);
-                    if (Objects.equals(opt.getFirst(), 'p')) {
-                        port = opt.getSecond();
-                        opt = op.getLongOpt(false);
-                        if (Objects.equals(opt.getFirst(), 'f')) {
-                            System.out.println("adding a file. ");
-                            //get the password from the console.
-                            Console console = System.console();
-                            String pass = new String(console.readPassword("Enter password:"));
-                            //get the otp from the console.
-                            System.out.print("Enter OTP: ");
-                            Scanner in = new Scanner(System.in);
-                            int otp;
-                            while (!in.hasNextInt()) {
-                                System.out.println("Authentication failed.");
-                                System.exit(0);
-                            }
-                            otp = in.nextInt();
-                            if (auth(host, pass, port, user, otp)) {
-
-                            } else {
-                                System.out.println("Authentication failed.");
-                                System.exit(0);
-                            }
-                        }
-                    }
+                else{
+                    System.out.println("Login failed.");
                 }
-            }
-        } else if (Objects.equals(opt.getFirst(), 'd')) {
-            opt = op.getLongOpt(false);
-            if (Objects.equals(opt.getFirst(), 'u')) {
-                user = opt.getSecond();
-                opt = op.getLongOpt(false);
-                if (Objects.equals(opt.getFirst(), 'h')) {
-                    host = opt.getSecond();
-                    opt = op.getLongOpt(false);
-                    if (Objects.equals(opt.getFirst(), 'p')) {
-                        port = opt.getSecond();
-                        opt = op.getLongOpt(false);
-                        if (Objects.equals(opt.getFirst(), 'f')) {
-                            System.out.println("dl a file. ");
-                            //get the password from the console.
-                            Console console = System.console();
-                            String pass = new String(console.readPassword("Enter password:"));
-                            //get the otp from the console.
-                            System.out.print("Enter OTP: ");
-                            Scanner in = new Scanner(System.in);
-                            int otp = in.nextInt();
-                            if (auth(host, pass, port, user, otp)) {
-
-                            } else {
-                                System.out.println("Authentication failed.");
-                                System.exit(0);
-                            }
-                        }
-                    }
-                }
-            }
+                break;
+            case 3:
+                System.exit(0);
+                break;
+            default:
+                System.out.println("Invalid input.");
+                break;
         }
     }
 
@@ -194,8 +162,9 @@ public class Client {
      * @param ticketString
      * @param filepath
      */
-    private static void uploadFile(String host, String pass, String port, String user, String ticketString, String filepath) {
+    private static void uploadFile(String host, String pass, String port, String user, String ticketString, String[] tags, String filepath) {
 
     }
 
+    
 }
