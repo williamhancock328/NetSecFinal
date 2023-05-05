@@ -13,6 +13,14 @@ public enum PacketType {
       AuthRequest(packets.AuthRequest.class),
       ServerResponse(packets.ServerResponse.class),
       FileUpload(packets.filepack.FileUpload.class),
+      SessionKeyRequest(packets.SessionKeyRequest.class),
+      SessionKeyResponse(packets.SessionKeyResponse.class),
+      ClientHello(packets.ClientHello.class),
+      ClientResponse(packets.ClientResponse.class),
+      CommPhase(packets.CommPhase.class),
+      ServerHello(packets.ServerHello.class),
+      Ticket(packets.Ticket.class),
+      HandshakeStatus(packets.HandshakeStatus.class)
       ;
 
       

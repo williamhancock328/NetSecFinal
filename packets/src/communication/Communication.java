@@ -19,6 +19,14 @@ import static packets.PacketType.EnrollRequest;
 import static packets.PacketType.ServerResponse;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
+import packets.ClientHello;
+import packets.ClientResponse;
+import packets.CommPhase;
+import packets.HandshakeStatus;
+import packets.ServerHello;
+import packets.SessionKeyRequest;
+import packets.SessionKeyResponse;
+import packets.Ticket;
 
 /**
  * Utility class used for sending packets across servers
@@ -110,6 +118,14 @@ public class Communication {
                 return new EnrollRequest(line, packetType);
             case ServerResponse:
                 return new ServerResponse(line, packetType);
+            case SessionKeyRequest: return new SessionKeyRequest(line, packetType);
+            case SessionKeyResponse: return new SessionKeyResponse(line, packetType);
+            case ClientHello: return new ClientHello(line, packetType); 
+            case ClientResponse: return new ClientResponse(line, packetType); 
+            case CommPhase: return new CommPhase(line, packetType); 
+            case ServerHello: return new ServerHello(line, packetType); 
+            case HandshakeStatus: return new HandshakeStatus(line, packetType);
+            case Ticket: return new Ticket(line, packetType);
             default:
                 return null;
         }
