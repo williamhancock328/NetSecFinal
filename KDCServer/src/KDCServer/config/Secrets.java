@@ -1,4 +1,4 @@
-package conf;
+package KDCServer.config;
 
 import java.io.InvalidObjectException;
 import merrimackutil.json.JSONSerializable;

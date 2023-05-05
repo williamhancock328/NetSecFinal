@@ -1,5 +1,5 @@
 
-package crypto;
+package KDCServer.crypto;
 
 import KDCServer.KDCServer;
 import java.nio.charset.StandardCharsets;

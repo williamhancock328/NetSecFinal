@@ -1,4 +1,4 @@
-package crypto;
+package KDCServer.crypto;
 
 import java.nio.ByteBuffer;
 import javax.crypto.Cipher;

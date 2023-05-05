@@ -1,5 +1,5 @@
-cd cloudserver
+cd KDCServer
 
-java -jar dist/cloudserver.jar -c config.json
+java -jar dist/KDCServer.jar -c config.json -a sslconfig.json
 
 pause

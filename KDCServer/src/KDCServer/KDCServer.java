@@ -1,4 +1,4 @@
-package kdc;
+package KDCServer;
 
 /**
  *
@@ -9,6 +9,7 @@ import KDCServer.config.Secrets;
 import KDCServer.config.SecretsConfig;
 import KDCServer.crypto.ServerMasterKeyEncryption;
 import communication.Communication;
+import config.SSLConfig;
 import java.io.FileNotFoundException;
 import java.net.Socket;
 import java.net.ServerSocket;
@@ -29,35 +30,44 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+import json.PwValue;
+import json.Vault;
 import merrimackutil.cli.LongOption;
 import merrimackutil.cli.OptionParser;
+import merrimackutil.codec.Base32;
 import merrimackutil.util.NonceCache;
 import merrimackutil.util.Tuple;
-import packets.CHAPChallenge;
-import packets.CHAPClaim;
-import packets.CHAPResponse;
-import packets.CHAPStatus;
+import packets.AuthRequest;
+import packets.EnrollRequest;
 import packets.Packet;
-import static packets.PacketType.CHAPResponse;
+import static packets.PacketType.AuthRequest;
+import packets.ServerResponse;
 import packets.SessionKeyRequest;
 import packets.SessionKeyResponse;
+import twoauth.Server;
+import twoauth.scrypt;
+import twoauth.totp;
 
 public class KDCServer {
 
     public static ArrayList<Secrets> secrets = new ArrayList<>();
     private static SecretsConfig secretsConfig;
     private static Config config;
+    private static SSLConfig sslconfig;
+    private static Vault v;
+    private static SSLServerSocket server;
 
-    private static ServerSocket server;
-
-    public static void main(String[] args) throws NoSuchAlgorithmException, FileNotFoundException, InvalidObjectException, IOException {
+    public static void main(String[] args) throws NoSuchAlgorithmException, FileNotFoundException, InvalidObjectException, IOException, InvalidKeySpecException {
 
         OptionParser op = new OptionParser(args);
-        LongOption[] ar = new LongOption[2];
+        LongOption[] ar = new LongOption[3];
         ar[0] = new LongOption("config", true, 'c');
-        ar[1] = new LongOption("help", false, 'h');
+        ar[1] = new LongOption("auth", true, 'a');
+        ar[2] = new LongOption("help", false, 'h');
         op.setLongOpts(ar);
-        op.setOptString("hc:");
+        op.setOptString("hc:a:");
         Tuple<Character, String> opt = op.getLongOpt(false);
         if (opt == null || Objects.equals(opt.getFirst(), 'h')) {
             System.out.println("usage:\n"
@@ -66,37 +76,58 @@ public class KDCServer {
                     + " kdcd --help\n"
                     + "options:\n"
                     + " -c, --config Set the config file.\n"
+                    + " -a, --auth Set the auth config file.\n"
                     + " -h, --help Display the help.");
             System.exit(0);
         } else if (Objects.equals(opt.getFirst(), 'c')) {
             // Initialize config
             config = new Config(opt.getSecond());
-            // Initialize the Secrets config from the path "secrets_file" of config.
-            secretsConfig = new SecretsConfig(config.getSecrets_file());
+            opt = op.getLongOpt(false);
+            if (Objects.equals(opt.getFirst(), 'a')) {
+                sslconfig = new SSLConfig(opt.getSecond());
+                // Initialize the Secrets config from the path "secrets_file" of config.
+                secretsConfig = new SecretsConfig(config.getSecrets_file());
+
+                //init vault.
+                try {
+                    v = new Vault(sslconfig.getPassword_file());
+                } catch (IOException ex) {
+                    Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                System.setProperty("javax.net.ssl.keyStore", sslconfig.getKeystore_file());
+                System.setProperty("javax.net.ssl.keyStorePassword", sslconfig.getKeystore_pass());
+
+                try {
+                    SSLServerSocketFactory sslFact;
+                    // Get a copy of the deafult factory. This is what ever the
+                    // configured provider gives.
+                    sslFact = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
+
+                    // Set up the server socket using the specified port number.
+                    server = (SSLServerSocket) sslFact.createServerSocket(5000);
+
+                    // Set the protocol to 1.3
+                    server.setEnabledProtocols(new String[]{"TLSv1.3"});
+                    // Accept packets & communicate
+                    poll();
+
+                    // Close the socket when polling is completed or an error is thrown.
+                    server.close();
+
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                    server.close();
+                    System.out.println("KDC Server IOException error, closing down.");
+                    System.exit(0);
+                } catch (NoSuchMethodException ex) {
+                    ex.printStackTrace();
+                    server.close();
+                    System.out.println("KDC Server IOException error, closing down.");
+                    System.exit(0);
+                }
+            }
+
         }
-
-        try {
-            // Initializie the server with the config port
-            server = new ServerSocket(config.getPort());
-
-            // Accept packets & communicate
-            poll();
-
-            // Close the socket when polling is completed or an error is thrown.
-            server.close();
-
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-            server.close();
-            System.out.println("KDC Server IOException error, closing down.");
-            System.exit(0);
-        } catch (NoSuchMethodException ex) {
-            ex.printStackTrace();
-            server.close();
-            System.out.println("KDC Server IOException error, closing down.");
-            System.exit(0);
-        }
-
     }
 
     // Gobal noncecache, holding nonces.
@@ -110,7 +141,7 @@ public class KDCServer {
      *
      * @throws IOException
      */
-    private static void poll() throws IOException, NoSuchMethodException, NoSuchAlgorithmException {
+    private static void poll() throws IOException, NoSuchMethodException, NoSuchAlgorithmException, InvalidKeySpecException {
         while (true) { // Consistently accept connections
 
             // Establish the connection & read the message
@@ -125,80 +156,61 @@ public class KDCServer {
             // Switch statement only goes over packets expected by the KDC, any other packet will be ignored.
             switch (packet.getType()) {
 
-                case CHAPClaim: {
-                    // Check if the user exists in the secretes && send a challenge back.
-                    CHAPClaim chapClaim_packet = (CHAPClaim) packet;
-                    if (secrets.stream().anyMatch(n -> n.getUser().equalsIgnoreCase(chapClaim_packet.getuName()))) {
-
-                        // Construct the nonce
-                        byte[] nonceBytes = nc.getNonce();
-                        nonceList.add(nonceBytes);
-                        // System.out.println("original nonce" + Arrays.toString(nonceBytes));
-                        //String s = [61, 49, 70, 95, -15, -97, 30, 49, -2, 33, -61, -14, 17, 32, 87, -68, 5, 114, -54, -118, -70, -83, 30, -41, -66, 83, 87, -61, -114, 68, 63, -17];
-                        String nonce = Base64.getEncoder().encodeToString(nonceBytes);
-                        System.out.println("The original nonce, created by the server: " + nonce);
-
-                        // Create the packet and send
-                        CHAPChallenge chapChallenge_packet = new CHAPChallenge(nonce);
-                        Communication.send(peer, chapChallenge_packet);
+                case AuthRequest: {
+                    //check if a user exists, and authenticate them if they do.
+                    AuthRequest AuthRequest_packet = (AuthRequest) packet;
+                    String u = AuthRequest_packet.getUser();
+                    String pw = AuthRequest_packet.getPass();
+                    int otp = AuthRequest_packet.getOtp();
+                    //check pw
+                    PwValue vaultEnt = v.GetPW(u);
+                    String hashToCheck = scrypt.checkPw(pw, Base64.getDecoder().decode(vaultEnt.getSalt()));
+                    if (hashToCheck.equals(vaultEnt.getPass())) {
+                    } else {
+                        ServerResponse authres = new ServerResponse(false, "Authentication failed.");
+                        Communication.send(peer, authres);
+                        break;
+                    }
+                    //totp
+                    totp t = new totp(vaultEnt.getTotpkey(), otp);
+                    if (t.CheckOtp()) {
+                        ServerResponse authres = new ServerResponse(true, "");
+                        Communication.send(peer, authres);
+                        //authorization is successful
+                        break;
+                    } else {
+                        ServerResponse authres = new ServerResponse(false, "Authentication failed.");
+                        Communication.send(peer, authres);
+                        break;
                     }
                 }
-                ;
-                break;
 
-                case CHAPResponse: {
-                    CHAPResponse chapResponse_packet = (CHAPResponse) packet; // User's response to challenge, contains combined, hashed pass & nonce
-
-                    // Decompile packet
-                    String receivedHash = chapResponse_packet.getHash();
-
-                    System.out.println("Received combined hash(base64): " + receivedHash);
-
-                    // Standard SHA-256
-                    MessageDigest digest = MessageDigest.getInstance("SHA-256");
-
-                    boolean status = false; //Status of our comparison with recieved hash, this is returned
-
-                    // Loop over each secretHashPass||clientHashNonce possibility, and determine if the hash exists in the KDC
-                    for (byte[] eachNonceByteArr : nonceList) {
-                        // For every secret in secrets.json, combine with nonce and hash it. Then check if it equals the recieved hash
-                        if (secrets.stream().anyMatch(secret -> {
-                            // byte array and combine the two like the client did when they sent their challenge response
-                            byte[] secretHashPass = Base64.getDecoder().decode(secret.getSecret());
-                            byte[] clientHashNonce = eachNonceByteArr;
-                            //System.out.println("server nonce lookup: " + Arrays.toString(clientHashNonce));
-                            //System.out.println("server hashed passwords: " + Arrays.toString(secretHashPass));
-                            byte[] combined = new byte[secretHashPass.length + clientHashNonce.length];
-
-                            System.arraycopy(secretHashPass, 0, combined, 0, secretHashPass.length);
-                            System.arraycopy(clientHashNonce, 0, combined, secretHashPass.length, clientHashNonce.length);
-                            combined = digest.digest(combined);
-
-                            // Our final hash
-                            String serverCombinedHash = Base64.getEncoder().encodeToString(combined);
-
-                            System.out.println("Server checking its combined hash: " + serverCombinedHash);
-
-                            // Compare the final hash with the received hash
-                            System.out.println(serverCombinedHash.equalsIgnoreCase(receivedHash));
-                            return serverCombinedHash.equalsIgnoreCase(receivedHash);
-                        })) {
-                            // If valid password, boolean is true 
-                            status = true;
-                            // Create the packet and send
-                            CHAPStatus chapStatus_packet = new CHAPStatus(status);
-                            Communication.send(peer, chapStatus_packet);
-                        } else {
-                            // If invalid password, boolean remains false
-                            // Create the packet and send
-                            CHAPStatus chapStatus_packet = new CHAPStatus(status);
-                            Communication.send(peer, chapStatus_packet);
-
-                        }
+                case EnrollRequest: {
+                    //check if a user exists, and enroll them if not.
+                    EnrollRequest EnrollRequest_packet = (EnrollRequest) packet;
+                    String user = EnrollRequest_packet.getUser();
+                    if (v.GetPW(user) != null) {
+                        ServerResponse eresp = new ServerResponse(false, "User already exists.");
+                        Communication.send(peer, eresp);
+                        break;
                     }
+                    // Construct an key for the HMAC.
+                    KeyGenerator hmacKeyGen = KeyGenerator.getInstance("HmacSHA1");
+                    SecretKey key = hmacKeyGen.generateKey();
+                    byte[] totpbytes = key.getEncoded();
+
+                    //hash the password
+                    Tuple<SecretKey, byte[]> userToAdd = scrypt.genKey(EnrollRequest_packet.getPass());
+                    String phash = Base64.getEncoder().encodeToString(userToAdd.getFirst().getEncoded());
+                    String salt = Base64.getEncoder().encodeToString(userToAdd.getSecond());
+                    String totpkey = Base64.getEncoder().encodeToString(totpbytes);
+                    v.AddPW(salt, phash, totpkey, user);
+                    //save the vault
+                    v.SaveJSON();
+                    ServerResponse res = new ServerResponse(true, Base32.encodeToString(totpbytes, true));
+                    Communication.send(peer, res);
+                    break;
                 }
-                ;
-                break;
 
                 case SessionKeyRequest: {
                     //String pw2 = "";
@@ -238,6 +250,7 @@ public class KDCServer {
 
     }
 
+    //this is the part where session key is sent to client 
     //this is the part where session key is sent to client 
     private static SessionKeyResponse sendSessionKey(String uname, String sName, String pw, String svcpw) {
         //validity period comes from config file  

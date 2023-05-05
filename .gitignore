@@ -19,3 +19,6 @@
 cloudserver/nbproject/private/private.properties
 /SSE/nbproject/private/
 /KDC/nbproject/private/
+/KDCServer/build/
+/KDCServer/dist/
+/KDCServer/nbproject/private/
