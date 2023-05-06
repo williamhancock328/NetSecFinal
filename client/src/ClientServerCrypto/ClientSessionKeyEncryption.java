@@ -25,7 +25,7 @@ import javax.crypto.spec.SecretKeySpec;
 public class ClientSessionKeyEncryption {
     
     public static byte[] rawIv;
-    public static byte[] encrypt(byte[] sessKey, byte[] nonce, String uName, String sName) throws
+    public static byte[] encrypt(byte[] sessKey, byte[] toEncrypt, String uName, String sName) throws
             NoSuchAlgorithmException, NoSuchPaddingException,
             InvalidKeyException, IllegalBlockSizeException,
             BadPaddingException, InvalidAlgorithmParameterException, InvalidKeySpecException {
@@ -59,7 +59,7 @@ public class ClientSessionKeyEncryption {
         aesCipher.init(Cipher.ENCRYPT_MODE, sessKey2, gcmParams);
         aesCipher.updateAAD(uName.getBytes(StandardCharsets.UTF_8));
         //encrypt the session key
-        byte[] ciphertext = aesCipher.doFinal(nonce);
+        byte[] ciphertext = aesCipher.doFinal(toEncrypt);
         return ciphertext;
         
     }

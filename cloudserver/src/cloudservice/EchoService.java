@@ -218,6 +218,7 @@ public class EchoService {
                         String[] arr = keyWords.split(",");
                         ArrayList<String> list = new ArrayList<>(Arrays.asList(arr));
                         System.out.println(list);
+                        System.out.println(stringNonceD);
                     } else {
                         System.out.println("Replay attack detected");
                         System.exit(0);

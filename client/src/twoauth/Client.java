@@ -302,7 +302,7 @@ public class Client {
     Communication phase.
     This is where send and request files take place
      */
-    private static boolean CommPhase() throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
+    private static boolean CommPhase() throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
 
         //Welcome Message
         System.out.println("Welcome to the Cloud Server!");
@@ -339,24 +339,37 @@ public class Client {
                 boolean exists = Files.exists(path);
 
                 if (exists) {
-
-                    //File password
+//File password
                     filePass = new String(console.readPassword("Create a file password:"));
                     SecretKey fileKey = scrypt.genKey(filePass, user); //SecretKey to encrypt file with
                     byte[] fileKeyBytes = fileKey.getEncoded();
                     System.out.println(Base64.getEncoder().encodeToString(fileKeyBytes));
 
-                    //TO-DO: Encrypt file contents with file key
-                    //File keywords
+//TO-DO: Encrypt file contents with file key
+//File keywords
                     System.out.println("Create associated key words. Please separate each word with a comma:");
                     String keywords = scanner2.nextLine();
                     String[] strings = keywords.split(",");
                     ArrayList<String> keywordList = new ArrayList<>(Arrays.asList(strings));
-                    String toStringArrayList = keywordList.toString(); //Convert to string for easy packet transport
 
-                    // MESSAGE 1: Client sends KeyWords for file send
-                    KeyWordSend sendKeyWords = new KeyWordSend(toStringArrayList, nonceD); // Construct the packet
+// Encode the file key as a base64 string
+                    String fileKeyBase64 = Base64.getEncoder().encodeToString(fileKeyBytes);
+                    System.out.println(fileKeyBase64);
+
+// Encode the keywords as a single string using a comma separator
+                    String encodedKeywords = String.join(",", keywordList);
+                    byte[] byteKeyWords = Base64.getEncoder().encode(encodedKeywords.getBytes());
+
+                    byte[] EncNonce = ClientSessionKeyEncryption.encrypt(sessionKeyClient, nonceDBytes, user, service);
+                    String StringEncNonce = Base64.getEncoder().encodeToString(EncNonce);
+
+                    byte[] EncKeyWords = ClientSessionKeyEncryption.encrypt(sessionKeyClient, byteKeyWords, user, service);
+                    String StringEncKeyWords = Base64.getEncoder().encodeToString(EncKeyWords);
+
+// MESSAGE 1: Client sends KeyWords for file send
+                    KeyWordSend sendKeyWords = new KeyWordSend(StringEncKeyWords, StringEncNonce); // Construct the packet
                     SSLSocket out = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), sendKeyWords); // Send the packet
+
 
                 } else {
                     System.out.println("The file path is invalid.");
