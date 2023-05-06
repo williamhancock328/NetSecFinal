@@ -22,16 +22,18 @@ public class EnrollRequest implements Packet, JSONSerializable {
     // Packet Data
     private String user;
     private String pass;
+    private String nonce;
 
     /**
      * Constructs a new EnrollRequest packet
      * @param user
      * @param pass
-     * @param opt 
+     * @param nonce 
      */
-    public EnrollRequest(String user, String pass) {
+    public EnrollRequest(String user, String pass, String nonce) {
         this.user = user;
         this.pass = pass;
+        this.nonce = nonce;
     }
 
     public String getUser() {
@@ -42,6 +44,11 @@ public class EnrollRequest implements Packet, JSONSerializable {
         return pass;
     }
 
+    public String getNonce() {
+        return nonce;
+    }
+
+    
 
     /**
      * Converts a JSONObject into a ticket object
@@ -66,29 +73,36 @@ public class EnrollRequest implements Packet, JSONSerializable {
     }
 
     /**
-     * Converts a JSON type to this object
-     * Converts types of Byte[] into strings for travel
+     * Converts a JSON type to this object Converts types of Byte[] into strings
+     * for travel
+     *
      * @param jsont
-     * @throws InvalidObjectException 
+     * @throws InvalidObjectException
      */
     @Override
     public void deserialize(JSONType obj) throws InvalidObjectException {
         JSONObject tmp;
 
-        if (obj instanceof JSONObject)
-          {
-            tmp = (JSONObject)obj;
-            if (tmp.containsKey("user"))
-              this.user = tmp.getString("user");
-            else
-              throw new InvalidObjectException("Expected an Ticket object -- user expected.");
-            if (tmp.containsKey("pass"))
-              this.pass = tmp.getString("pass");
-            else
-              throw new InvalidObjectException("Expected an Ticket object -- pass expected.");
-          }
-          else 
+        if (obj instanceof JSONObject) {
+            tmp = (JSONObject) obj;
+            if (tmp.containsKey("user")) {
+                this.user = tmp.getString("user");
+            } else {
+                throw new InvalidObjectException("Expected an Ticket object -- user expected.");
+            }
+            if (tmp.containsKey("pass")) {
+                this.pass = tmp.getString("pass");
+            } else {
+                throw new InvalidObjectException("Expected an Ticket object -- pass expected.");
+            }
+            if (tmp.containsKey("nonce")) {
+                this.nonce = tmp.getString("nonce");
+            } else {
+                throw new InvalidObjectException("Expected an Ticket object -- nonce expected.");
+            }
+        } else {
             throw new InvalidObjectException("Expected a Ticket - Type JSONObject not found.");
+        }
     }
 
     /**
@@ -101,6 +115,7 @@ public class EnrollRequest implements Packet, JSONSerializable {
         object.put("packetType", PACKET_TYPE.toString());
         object.put("user", this.user);
         object.put("pass", this.pass);
+        object.put("nonce", this.nonce);
 
         return object;
     }

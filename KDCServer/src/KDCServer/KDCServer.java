@@ -161,27 +161,37 @@ public class KDCServer {
                     AuthRequest AuthRequest_packet = (AuthRequest) packet;
                     String u = AuthRequest_packet.getUser();
                     String pw = AuthRequest_packet.getPass();
-                    int otp = AuthRequest_packet.getOtp();
-                    //check pw
-                    PwValue vaultEnt = v.GetPW(u);
-                    String hashToCheck = scrypt.checkPw(pw, Base64.getDecoder().decode(vaultEnt.getSalt()));
-                    if (hashToCheck.equals(vaultEnt.getPass())) {
+                    String receivedNonceB = AuthRequest_packet.getNonce();
+                    byte[] nonceBToBytes = Base64.getDecoder().decode(receivedNonceB);
+
+                    if (!nc.containsNonce(nonceBToBytes)) {
+
+                        int otp = AuthRequest_packet.getOtp();
+                        //check pw
+                        PwValue vaultEnt = v.GetPW(u);
+                        String hashToCheck = scrypt.checkPw(pw, Base64.getDecoder().decode(vaultEnt.getSalt()));
+                        if (hashToCheck.equals(vaultEnt.getPass())) {
+                        } else {
+                            ServerResponse authres = new ServerResponse(false, "Authentication failed.");
+                            Communication.send(peer, authres);
+                            break;
+                        }
+                        //totp
+                        totp t = new totp(vaultEnt.getTotpkey(), otp);
+                        if (t.CheckOtp()) {
+                            ServerResponse authres = new ServerResponse(true, "");
+                            Communication.send(peer, authres);
+                            //authorization is successful
+                            break;
+                        } else {
+                            ServerResponse authres = new ServerResponse(false, "Authentication failed.");
+                            Communication.send(peer, authres);
+                            break;
+                        }
+
                     } else {
-                        ServerResponse authres = new ServerResponse(false, "Authentication failed.");
-                        Communication.send(peer, authres);
-                        break;
-                    }
-                    //totp
-                    totp t = new totp(vaultEnt.getTotpkey(), otp);
-                    if (t.CheckOtp()) {
-                        ServerResponse authres = new ServerResponse(true, "");
-                        Communication.send(peer, authres);
-                        //authorization is successful
-                        break;
-                    } else {
-                        ServerResponse authres = new ServerResponse(false, "Authentication failed.");
-                        Communication.send(peer, authres);
-                        break;
+                        System.out.println("Replay attack detected");
+                        System.exit(0);
                     }
                 }
 
@@ -189,27 +199,42 @@ public class KDCServer {
                     //check if a user exists, and enroll them if not.
                     EnrollRequest EnrollRequest_packet = (EnrollRequest) packet;
                     String user = EnrollRequest_packet.getUser();
-                    if (v.GetPW(user) != null) {
-                        ServerResponse eresp = new ServerResponse(false, "User already exists.");
-                        Communication.send(peer, eresp);
-                        break;
-                    }
-                    // Construct an key for the HMAC.
-                    KeyGenerator hmacKeyGen = KeyGenerator.getInstance("HmacSHA1");
-                    SecretKey key = hmacKeyGen.generateKey();
-                    byte[] totpbytes = key.getEncoded();
+                    String receivedNonceA = EnrollRequest_packet.getNonce();
+                    System.out.println(receivedNonceA);
+                    byte[] nonceAToBytes = Base64.getDecoder().decode(receivedNonceA);
 
-                    //hash the password
-                    Tuple<SecretKey, byte[]> userToAdd = scrypt.genKey(EnrollRequest_packet.getPass());
-                    String phash = Base64.getEncoder().encodeToString(userToAdd.getFirst().getEncoded());
-                    String salt = Base64.getEncoder().encodeToString(userToAdd.getSecond());
-                    String totpkey = Base64.getEncoder().encodeToString(totpbytes);
-                    v.AddPW(salt, phash, totpkey, user);
-                    //save the vault
-                    v.SaveJSON();
-                    ServerResponse res = new ServerResponse(true, Base32.encodeToString(totpbytes, true));
-                    Communication.send(peer, res);
-                    break;
+                    if (!nc.containsNonce(nonceAToBytes)) {
+
+                        //Add received nonce to nonce cache
+                        nc.addNonce(nonceAToBytes);
+
+                        if (v.GetPW(user) != null) {
+                            ServerResponse eresp = new ServerResponse(false, "User already exists.");
+                            Communication.send(peer, eresp);
+                            break;
+                        }
+                        // Construct an key for the HMAC.
+                        KeyGenerator hmacKeyGen = KeyGenerator.getInstance("HmacSHA1");
+                        SecretKey key = hmacKeyGen.generateKey();
+                        byte[] totpbytes = key.getEncoded();
+
+                        //hash the password
+                        Tuple<SecretKey, byte[]> userToAdd = scrypt.genKey(EnrollRequest_packet.getPass());
+                        String phash = Base64.getEncoder().encodeToString(userToAdd.getFirst().getEncoded());
+                        String salt = Base64.getEncoder().encodeToString(userToAdd.getSecond());
+                        String totpkey = Base64.getEncoder().encodeToString(totpbytes);
+                        v.AddPW(salt, phash, totpkey, user);
+                        //save the vault
+                        v.SaveJSON();
+                        ServerResponse res = new ServerResponse(true, Base32.encodeToString(totpbytes, true));
+                        Communication.send(peer, res);
+                        break;
+
+                    } else {
+                        System.out.println("Replay attack detected");
+                        System.exit(0);
+                    }
+
                 }
 
                 case SessionKeyRequest: {

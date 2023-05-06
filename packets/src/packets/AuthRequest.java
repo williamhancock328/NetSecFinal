@@ -22,17 +22,20 @@ public class AuthRequest implements Packet, JSONSerializable {
     private String user;
     private String pass;
     private int otp;
+    private String nonce;
 
     /**
      * Constructs a new AuthRequest packet
      * @param user
      * @param pass
      * @param opt 
+     * @param nonce 
      */
-    public AuthRequest(String user, String pass, int opt) {
+    public AuthRequest(String user, String pass, int opt, String nonce) {
         this.user = user;
         this.pass = pass;
         this.otp = opt;
+        this.nonce = nonce;
     }
 
     public String getUser() {
@@ -47,6 +50,11 @@ public class AuthRequest implements Packet, JSONSerializable {
         return otp;
     }
 
+    public String getNonce() {
+        return nonce;
+    }
+
+    
 
     /**
      * Converts a JSONObject into a ticket object
@@ -80,24 +88,31 @@ public class AuthRequest implements Packet, JSONSerializable {
     public void deserialize(JSONType obj) throws InvalidObjectException {
         JSONObject tmp;
 
-        if (obj instanceof JSONObject)
-          {
-            tmp = (JSONObject)obj;
-            if (tmp.containsKey("user"))
-              this.user = tmp.getString("user");
-            else
-              throw new InvalidObjectException("Expected an Ticket object -- user expected.");
-            if (tmp.containsKey("pass"))
-              this.pass = tmp.getString("pass");
-            else
-              throw new InvalidObjectException("Expected an Ticket object -- pass expected.");
-            if (tmp.containsKey("otp"))
-              this.otp = tmp.getInt("otp");
-            else
-              throw new InvalidObjectException("Expected an Ticket object -- otp expected.");
-          }
-          else 
+        if (obj instanceof JSONObject) {
+            tmp = (JSONObject) obj;
+            if (tmp.containsKey("user")) {
+                this.user = tmp.getString("user");
+            } else {
+                throw new InvalidObjectException("Expected an Ticket object -- user expected.");
+            }
+            if (tmp.containsKey("pass")) {
+                this.pass = tmp.getString("pass");
+            } else {
+                throw new InvalidObjectException("Expected an Ticket object -- pass expected.");
+            }
+            if (tmp.containsKey("otp")) {
+                this.otp = tmp.getInt("otp");
+            } else {
+                throw new InvalidObjectException("Expected an Ticket object -- otp expected.");
+            }
+            if (tmp.containsKey("nonce")) {
+                this.nonce = tmp.getString("nonce");
+            } else {
+                throw new InvalidObjectException("Expected an Ticket object -- nonce expected.");
+            }
+        } else {
             throw new InvalidObjectException("Expected a Ticket - Type JSONObject not found.");
+        }
     }
 
     /**
@@ -111,6 +126,8 @@ public class AuthRequest implements Packet, JSONSerializable {
         object.put("user", this.user);
         object.put("pass", this.pass);
         object.put("otp", this.otp);
+        object.put("nonce", this.nonce);
+        
 
         return object;
     }
