@@ -245,7 +245,7 @@ public class Client {
     }
     
     private static boolean CommPhase() {
-        
+        String filePass;
         //print a welcome message then a menu with the options to create a user, download a file, upload a file, manage tags, and search for files by tag
         System.out.println("Welcome to the Cloud Server!");
         Console console = System.console();
@@ -263,11 +263,14 @@ public class Client {
                 System.out.println("Enter file location:");
                String fileLocation = scanner2.nextLine(); 
                System.out.println(fileLocation);
+                filePass = new String(console.readPassword("Enter password:"));
+                System.out.println(filePass);
                 
                 break;
             case 2:
-                System.out.println("Made it to REQUEST");
-
+//                        System.out.println("Enter file location:");
+//               String fileLocation = scanner2.nextLine(); 
+//               System.out.println(fileLocation);
                 break;
             case 3:
                 System.exit(0);
