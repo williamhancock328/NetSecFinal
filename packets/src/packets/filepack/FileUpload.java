@@ -21,7 +21,7 @@ public class FileUpload implements Packet, JSONSerializable {
     
     // Packet Data
     private String user;
-    pr
+    private String pass;
     private int otp;
 
     /**
