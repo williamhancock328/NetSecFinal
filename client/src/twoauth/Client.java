@@ -233,7 +233,7 @@ public class Client {
             if (handshakeStatus_packet.getMsg() == true) {
                 // Handshake protocol checks out
                 System.out.println("done");
-                return true;
+                CommPhase();
             } else {
                 //Otherwise false, exit system
                 System.exit(0);
@@ -242,6 +242,38 @@ public class Client {
         }
         return false;
 
+    }
+    
+    private static boolean CommPhase() {
+        
+        //print a welcome message then a menu with the options to create a user, download a file, upload a file, manage tags, and search for files by tag
+        System.out.println("Welcome to the Cloud Server!");
+        Console console = System.console();
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Options Menu:");
+        System.out.println("1. Send Files");
+        System.out.println("2. Request Files");
+        System.out.println("3. Exit");
+        Scanner scanner2 = new Scanner(System.in);
+        int input = scanner2.nextInt();
+        switch(input){
+            case 1:
+                System.out.println("Made it to SEND");
+                break;
+            case 2:
+                System.out.println("Made it to REQUEST");
+
+                break;
+            case 3:
+                System.exit(0);
+                break;
+            default:
+                System.out.println("Invalid input.");
+                break;
+        }
+        
+        
+        return true;
     }
     
     
