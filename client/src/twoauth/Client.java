@@ -256,9 +256,14 @@ public class Client {
         System.out.println("3. Exit");
         Scanner scanner2 = new Scanner(System.in);
         int input = scanner2.nextInt();
+        scanner2.nextLine(); 
         switch(input){
             case 1:
-                System.out.println("Made it to SEND");
+ 
+                System.out.println("Enter file location:");
+               String fileLocation = scanner2.nextLine(); 
+               System.out.println(fileLocation);
+                
                 break;
             case 2:
                 System.out.println("Made it to REQUEST");
