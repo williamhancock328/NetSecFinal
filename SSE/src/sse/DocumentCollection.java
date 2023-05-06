@@ -11,16 +11,19 @@ import sse.files.Entry;
  *
  * @author William Hancock
  */
-public class DocCollection {
+public class DocumentCollection {
 
     /**
      * Index Table HashMap
      * 
      * Each (Token,Document) pair represents a token pointing towards a document in the cloud server
      */
-    private static HashMap<List<Token>, EncryptedDocument> index_table = new HashMap<>();
+    private HashMap<List<Token>, EncryptedDocument> index_table = new HashMap<>();
     
-    public DocCollection() {
+    /**
+     * Default Constructor
+     */
+    public DocumentCollection() {
         
     }
     
@@ -30,16 +33,18 @@ public class DocCollection {
      * @param token
      * @return 
      */
-    public EncryptedDocument Search(Token token) {
+    public List<EncryptedDocument> Search(Token token) {
+        
+        List<EncryptedDocument> ret = new ArrayList<>();
         
          for(List<Token> key : index_table.keySet()) {
             // Gets an EncryptedDocument (document) based on the given Token.
             if(key.contains(token)) {
-                return index_table.get(key);
+                ret.add(index_table.get(key));
             }
         }
         
-        return null;
+        return ret;
     } 
     
     /**
@@ -47,7 +52,7 @@ public class DocCollection {
      * 
      * @param entries 
      */
-    public static void fromDatabase(List<Entry> entries) {
+    public void fromDatabase(List<Entry> entries) {
         
         // Load all the entires to the index_table
         for(Entry n : entries) {
@@ -74,7 +79,7 @@ public class DocCollection {
      * 
      * 
      */
-    public static List<Entry> toEntries() {
+    public List<Entry> toEntries() {
         List<Entry> entries = new ArrayList<>();
         
         for(List<Token> key : index_table.keySet()) {
