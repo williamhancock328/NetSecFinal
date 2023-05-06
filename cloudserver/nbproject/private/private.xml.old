@@ -2,6 +2,7 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+<<<<<<< HEAD
         <group name="case_hancock_elguezabal_3055_project4">
             <file>file:/C:/Users/willi/Documents/NetBeansProjects/case_hancock_elguezabal_3055_project4/EchoService/src/echoservice/EchoService.java</file>
             <file>file:/C:/Users/willi/Documents/NetBeansProjects/case_hancock_elguezabal_3055_project4/EchoService/src/echoServiceCrypto/EchoSessionKeyDecComm.java</file>
@@ -9,6 +10,14 @@
         </group>
         <group name="current">
             <file>file:/C:/Users/willi/Documents/NetBeansProjects/NetSecFinal/cloudserver/src/cloudservice/EchoService.java</file>
+=======
+        <group>
+            <file>file:/C:/Users/Alex/Desktop/NetSecFinal/cloudserver/src/twoauth/totp.java</file>
+            <file>file:/C:/Users/Alex/Desktop/NetSecFinal/cloudserver/src/twoauth/Server.java</file>
+            <file>file:/C:/Users/Alex/Desktop/NetSecFinal/cloudserver/src/twoauth/scrypt.java</file>
+            <file>file:/C:/Users/Alex/Desktop/NetSecFinal/cloudserver/src/json/Vault.java</file>
+            <file>file:/C:/Users/Alex/Desktop/NetSecFinal/cloudserver/src/json/PwValue.java</file>
+>>>>>>> sse
         </group>
     </open-files>
 </project-private>

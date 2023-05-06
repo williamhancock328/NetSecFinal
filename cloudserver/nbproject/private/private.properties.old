@@ -6,5 +6,9 @@ do.jlink=false
 javac.debug=true
 javadoc.preview=true
 jlink.strip=false
+<<<<<<< HEAD
 user.properties.file=C:\\Users\\willi\\AppData\\Roaming\\NetBeans\\16\\build.properties
 work.dir=C:\\Users\\willi\\Documents\\NetBeansProjects\\NetSecFinal\\cloudserver
+=======
+user.properties.file=C:\\Users\\Alex\\AppData\\Roaming\\NetBeans\\16\\build.properties
+>>>>>>> sse

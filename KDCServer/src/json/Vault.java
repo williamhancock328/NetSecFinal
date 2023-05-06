@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Base64;
 import merrimackutil.json.JsonIO;
 import merrimackutil.json.types.JSONArray;
 import merrimackutil.json.types.JSONObject;
