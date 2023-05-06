@@ -266,6 +266,12 @@ public class Client {
                 filePass = new String(console.readPassword("Enter password:"));
                 System.out.println(filePass);
                 
+                System.out.println("Enter kewwords separated by commas:");
+                String keywords = scanner2.nextLine();
+                String[] strings = keywords.split(",");
+                ArrayList<String> keywordList = new ArrayList<>(Arrays.asList(strings));
+                System.out.println(keywordList);
+                
                 break;
             case 2:
 //                        System.out.println("Enter file location:");
