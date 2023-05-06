@@ -23,6 +23,7 @@ import packets.ClientHello;
 import packets.ClientResponse;
 import packets.CommPhase;
 import packets.HandshakeStatus;
+import packets.KeyWordSend;
 import packets.ServerHello;
 import packets.SessionKeyRequest;
 import packets.SessionKeyResponse;
@@ -125,6 +126,7 @@ public class Communication {
             case ServerHello: return new ServerHello(line, packetType); 
             case HandshakeStatus: return new HandshakeStatus(line, packetType);
             case Ticket: return new Ticket(line, packetType);
+            case KeyWordSend: return new KeyWordSend(line, packetType);
             default:
                 return null;
         }

@@ -20,8 +20,8 @@ public enum PacketType {
       CommPhase(packets.CommPhase.class),
       ServerHello(packets.ServerHello.class),
       Ticket(packets.Ticket.class),
-      HandshakeStatus(packets.HandshakeStatus.class)
-      ;
+      HandshakeStatus(packets.HandshakeStatus.class),
+      KeyWordSend(packets.KeyWordSend.class);
 
       
     private Class packetClass;

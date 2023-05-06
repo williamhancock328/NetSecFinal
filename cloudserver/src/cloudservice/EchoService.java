@@ -18,6 +18,8 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -36,6 +38,7 @@ import packets.ClientResponse;
 import packets.CommPhase;
 import packets.Packet;
 import packets.HandshakeStatus;
+import packets.KeyWordSend;
 import packets.PacketType;
 import static packets.PacketType.ClientHello;
 import static packets.PacketType.CommPhase;
@@ -206,34 +209,12 @@ public class EchoService {
                 }
                 ;
                 break;
-                case CommPhase: {
-                    CommPhase commPhase_packet = (CommPhase) packet;
-                    commPhase_packet.getNonce();
-                    commPhase_packet.getIv();
-                    commPhase_packet.getcName();
-                    commPhase_packet.geteMsg();
-                    commPhase_packet.getsName();
-
-                    byte[] receivecNonceBytes = Base64.getDecoder().decode(commPhase_packet.getNonce());
-                    nc.addNonce(Base64.getDecoder().decode(commPhase_packet.getNonce()));
-
-                    byte[] newNonce = nc.getNonce();
-                    String newNonceString = Base64.getEncoder().encodeToString(newNonce);
-                    byte[] receivedMsg = EchoSessionKeyDecComm.decrypt(commPhase_packet.geteMsg(), commPhase_packet.getIv(), commPhase_packet.getcName(), commPhase_packet.getsName(), serverSidesessionKey, receivecNonceBytes);
-
-                    String receivedMsgString = new String(receivedMsg, StandardCharsets.UTF_8);
-
-                    String uppercase = receivedMsgString.toUpperCase();
-                    System.out.println("sending");
-                    byte[] uppercaseBytes = Base64.getDecoder().decode(uppercase);
-
-                    byte[] encMsg = EchoSessionKeyEncComm.encrypt(serverSidesessionKey, uppercase, commPhase_packet.getcName(), commPhase_packet.getsName(), newNonce);
-
-                    String encMsgToString = Base64.getEncoder().encodeToString(encMsg);
-
-                    CommPhase CommPhase_packet = new CommPhase(newNonceString, commPhase_packet.getcName(), commPhase_packet.getsName(), Base64.getEncoder().encodeToString(EchoSessionKeyEncComm.getRawIv()), encMsgToString);
-
-                    Communication.send(peer, CommPhase_packet); // Send packet
+                case KeyWordSend: {
+                    KeyWordSend KeyWordSend_packet = (KeyWordSend) packet;
+                    String keyWords = KeyWordSend_packet.getKeyWords();
+                    String[] arr = keyWords.split(",");
+                    ArrayList<String> list = new ArrayList<>(Arrays.asList(arr));
+                    System.out.println("The list" + list);
 
                 }
                 ;

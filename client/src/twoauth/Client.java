@@ -45,7 +45,6 @@ public class Client {
     private static byte[] sessionKeyClient;
     private static String service = "cloudservice";
 
-
     /**
      * The client for the file sharing system.
      *
@@ -64,7 +63,7 @@ public class Client {
         Host hosts = getHost("kdcd");
         Scanner scanner2 = new Scanner(System.in);
         int input = scanner2.nextInt();
-        switch(input){
+        switch (input) {
             case 1:
                 System.out.println("Please enter the username you would like to use: ");
                 String newuser = scanner.nextLine();
@@ -77,13 +76,12 @@ public class Client {
                 pass = new String(console.readPassword("Enter password:"));
                 System.out.println("Please enter your one time password: ");
                 int otp = scanner.nextInt();
-                if(auth(user, pass, hosts.getPort(), user, otp)){
+                if (auth(user, pass, hosts.getPort(), user, otp)) {
                     System.out.println("");
                     Ticket tik = SessionKeyRequest();
                     System.out.println("Now we have the ticket.");
                     Handshake(tik);
-                }
-                else{
+                } else {
                     System.out.println("Login failed.");
                 }
                 break;
@@ -156,7 +154,7 @@ public class Client {
     private static Host getHost(String host_name) {
         return hosts.stream().filter(n -> n.getHost_name().equalsIgnoreCase(host_name)).findFirst().orElse(null);
     }
-    
+
     private static Ticket SessionKeyRequest() throws IOException, NoSuchMethodException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException {
         Host host = getHost("kdcd");
 
@@ -206,7 +204,7 @@ public class Client {
         System.out.println("ct: " + ServerHello_Packet.geteSKey());
         System.out.println("iv: " + ServerHello_Packet.getIv());
         System.out.println("user: " + user);
-        System.out.println("session name : " + ServerHello_Packet.getsName());    
+        System.out.println("session name : " + ServerHello_Packet.getsName());
         System.out.println("session key: " + Base64.getEncoder().encodeToString(sessionKeyClient));
         //Decrypt nonce c
         byte[] checkNonceCBytes = ClientSessionKeyDecryption.decrypt(ServerHello_Packet.geteSKey(), ServerHello_Packet.getIv(), user, sessionKeyClient, ServerHello_Packet.getsName());
@@ -243,8 +241,8 @@ public class Client {
         return false;
 
     }
-    
-    private static boolean CommPhase() {
+
+    private static boolean CommPhase() throws IOException {
         String filePass;
         //print a welcome message then a menu with the options to create a user, download a file, upload a file, manage tags, and search for files by tag
         System.out.println("Welcome to the Cloud Server!");
@@ -256,27 +254,38 @@ public class Client {
         System.out.println("3. Exit");
         Scanner scanner2 = new Scanner(System.in);
         int input = scanner2.nextInt();
-        scanner2.nextLine(); 
-        switch(input){
+        scanner2.nextLine();
+        switch (input) {
             case 1:
- 
-                System.out.println("Enter file location:");
-               String fileLocation = scanner2.nextLine(); 
-               System.out.println(fileLocation);
-                filePass = new String(console.readPassword("Enter password:"));
-                System.out.println(filePass);
-                
-                System.out.println("Enter kewwords separated by commas:");
+                Host host = getHost("cloudservice");
+                //File location
+                System.out.println("Enter location of file you wish to send:");
+                String fileLocation = scanner2.nextLine();
+
+                //File password
+                filePass = new String(console.readPassword("Create a file password:"));
+
+                //File keywords
+                System.out.println("Create associated key words. Please separate each word with a comma:");
                 String keywords = scanner2.nextLine();
                 String[] strings = keywords.split(",");
                 ArrayList<String> keywordList = new ArrayList<>(Arrays.asList(strings));
-                System.out.println(keywordList);
-                
+                // 
+                String toStringArrayList = keywordList.toString();
+                // MESSAGE 1: Client sends echoservice the nonce C and ticket
+                KeyWordSend sendKeyWords = new KeyWordSend(toStringArrayList); // Construct the packet
+                System.out.println(host.getAddress() + host.getPort());
+                Socket socket = Communication.connectAndSend(host.getAddress(), host.getPort(), sendKeyWords); // Send the packet
+
                 break;
             case 2:
-//                        System.out.println("Enter file location:");
-//               String fileLocation = scanner2.nextLine(); 
-//               System.out.println(fileLocation);
+                //File keywords
+                System.out.println("Enter key words. Please seperate each one with a comma");
+                String keywords2 = scanner2.nextLine();
+                String[] strings2 = keywords2.split(",");
+                ArrayList<String> keywordList2 = new ArrayList<>(Arrays.asList(strings2));
+
+                
                 break;
             case 3:
                 System.exit(0);
@@ -285,10 +294,8 @@ public class Client {
                 System.out.println("Invalid input.");
                 break;
         }
-        
-        
+
         return true;
     }
-    
-    
+
 }
