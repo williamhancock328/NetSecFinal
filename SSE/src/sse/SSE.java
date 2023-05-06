@@ -9,10 +9,18 @@ import java.util.ArrayList;
  */
 public class SSE {
     
-    public SSE() {
+    // List of the collection doccuments
+    private DocCollection docCollection;
+        
+    /**
+     * Default constructor
+     */
+    public SSE(String db_loc) {
+        
+        Setup();
     }
     
-    public SetupOutput Setup(){
+    private void Setup(){
         
     }
     
