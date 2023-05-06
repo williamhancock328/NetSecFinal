@@ -1,6 +1,5 @@
 package packets;
 
-
 import java.io.InvalidObjectException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -8,14 +7,6 @@ import merrimackutil.json.JSONSerializable;
 import merrimackutil.json.JsonIO;
 import merrimackutil.json.types.JSONObject;
 import merrimackutil.json.types.JSONType;
-import packets.AuthRequest;
-import packets.Packet;
-import packets.PacketType;
-
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 
 /**
  *

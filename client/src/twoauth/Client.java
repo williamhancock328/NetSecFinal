@@ -5,17 +5,16 @@ import ClientServerCrypto.ClientSessionKeyDecryption;
 import ClientServerCrypto.ClientSessionKeyEncryption;
 import ClientServerCrypto.scrypt;
 import packets.*;
-import java.util.Objects;
 import javax.net.ssl.SSLSocket;
-import merrimackutil.cli.LongOption;
-import merrimackutil.cli.OptionParser;
-import merrimackutil.util.Tuple;
 import communication.*;
 import conf.Config;
 import conf.Host;
 import java.io.Console;
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -32,53 +31,72 @@ import merrimackutil.util.NonceCache;
 
 /**
  *
- * @author willi
+ * @author William H., Mark C., Alex E.
  */
 public class Client {
 
-    public static ArrayList<Host> hosts = new ArrayList<>();
-    private static Config config;
-    private static String host = "hosts.json";
-    private static String port;
-    private static String pass;
-    private static String user;
-    Console console = System.console();
-    private static NonceCache nc = new NonceCache(32, 30);
-    private static byte[] sessionKeyClient;
-    private static String service = "cloudservice";
+    public static ArrayList<Host> hosts = new ArrayList<>(); //Lsit of servers (hosts)
+    private static Config config; // config files
+    private static String host = "hosts.json"; //host file
+    private static String port; //port num
+    private static String pass; // user pass
+    private static String user; // usernmae
+    Console console = System.console(); //console class for entering passwords
+    private static NonceCache nc = new NonceCache(32, 30); //Nonce cache for msg freshness
+    private static byte[] sessionKeyClient; //Session key, client side
+    private static String service = "cloudservice"; // Service name 
 
     /**
-     * The client for the file sharing system.
+     * Client Side Communication
+     * Goal is to establish trust with
+     * KDC and gain access to cloud-server.From there, send or request files
      *
      * @param args the command line arguments
+     * @throws java.io.IOException
+     * @throws java.lang.NoSuchMethodException
+     * @throws java.security.NoSuchAlgorithmException
+     * @throws java.security.spec.InvalidKeySpecException
+     * @throws javax.crypto.NoSuchPaddingException
+     * @throws java.security.InvalidKeyException
+     * @throws javax.crypto.IllegalBlockSizeException
+     * @throws javax.crypto.BadPaddingException
+     * @throws java.security.InvalidAlgorithmParameterException
      */
     public static void main(String[] args) throws IOException, NoSuchMethodException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
         //print a welcome message then a menu with the options to create a user, download a file, upload a file, manage tags, and search for files by tag
         System.out.println("Welcome to the File Sharing System!");
+        //Console and scanner objects
         Console console = System.console();
         Scanner scanner = new Scanner(System.in);
-        config = new Config(host);
+      
+        config = new Config(host); //Config to hosts.json
+        
         System.out.println("Login Menu:");
         System.out.println("1. Create a new user");
         System.out.println("2. Login as an existing user");
         System.out.println("3. Exit");
-        Host hosts = getHost("kdcd");
+        Host theHost = getHost("kdcd");
         Scanner scanner2 = new Scanner(System.in);
         int input = scanner2.nextInt();
+        //Grab input from user
         switch (input) {
+            //New user
             case 1:
                 System.out.println("Please enter the username you would like to use: ");
                 String newuser = scanner.nextLine();
                 String newpass = new String(console.readPassword("Enter password:"));
-                create(host, newpass, hosts.getPort(), newuser);
+                //Calls create method
+                create(host, newpass, theHost.getPort(), newuser);
                 break;
+            // Returning user
             case 2:
                 System.out.println("Please enter your username: ");
                 user = scanner.nextLine();
                 pass = new String(console.readPassword("Enter password:"));
                 System.out.println("Please enter your one time password: ");
                 int otp = scanner.nextInt();
-                if (auth(user, pass, hosts.getPort(), user, otp)) {
+                //Calls auth method, if it's true -> then request a ticket to cloud-server and begin handshake
+                if (auth(user, pass, theHost.getPort(), user, otp)) {
                     System.out.println("");
                     Ticket tik = SessionKeyRequest();
                     System.out.println("Now we have the ticket.");
@@ -87,6 +105,7 @@ public class Client {
                     System.out.println("Login failed.");
                 }
                 break;
+            //Exit
             case 3:
                 System.exit(0);
                 break;
@@ -152,11 +171,19 @@ public class Client {
     private static void uploadFile(String host, String pass, String port, String user, String ticketString, String[] tags, String filepath) {
 
     }
-
+    
+    /*
+    Get host method
+    */
     private static Host getHost(String host_name) {
         return hosts.stream().filter(n -> n.getHost_name().equalsIgnoreCase(host_name)).findFirst().orElse(null);
     }
 
+    /*
+    Session key request method
+    Grants authenticated user access to
+    cloud-server
+    */
     private static Ticket SessionKeyRequest() throws IOException, NoSuchMethodException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException {
         Host host = getHost("kdcd");
 
@@ -166,27 +193,25 @@ public class Client {
 
         // MESSAGE 2
         SessionKeyResponse sessKeyResp_Packet = (SessionKeyResponse) Communication.read(socket); // Read for a packet  // KDC checks username validity and if valid, demands password and gives a nonce
-        System.out.println("IV");
-        System.out.println(sessKeyResp_Packet.getuIv());
-
-        System.out.println("Session key");
-        System.out.println(sessKeyResp_Packet.geteSKeyAlice());
-        System.out.println(sessKeyResp_Packet.getValidityTime());
-        System.out.println(sessKeyResp_Packet.getCreateTime());
-        System.out.println(sessKeyResp_Packet.getsName());
-        //alice's session key
 
         sessionKeyClient = ClientMasterKeyDecryption.decrypt(sessKeyResp_Packet.geteSKeyAlice(), sessKeyResp_Packet.getuIv(), user, pass, sessKeyResp_Packet.getCreateTime(), sessKeyResp_Packet.getValidityTime(), sessKeyResp_Packet.getsName());
         System.out.println("Client session key: " + Arrays.toString(sessionKeyClient));
+        
+        //close connection to KDC
         socket.close();
-        //send a ticket
+        
+        //send the ticket
         return new Ticket(sessKeyResp_Packet.getCreateTime(), sessKeyResp_Packet.getValidityTime(), sessKeyResp_Packet.getuName(), sessKeyResp_Packet.getsName(), sessKeyResp_Packet.getIv(), sessKeyResp_Packet.geteSKey());
     }
 
+    /*
+    Handshake method.
+    Establishes trust between client and cloud-server
+    */
     private static boolean Handshake(Ticket in) throws IOException, NoSuchMethodException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
-        //Client connects to echoservice
-        Host host = getHost("cloudservice");
-        System.out.println("GOT TO ECHOSERVICE");
+        //Client connects to cloud service
+        Host theHost = getHost("cloudservice");
+
         // Get fresh nonce C
         byte[] nonceCBytes = nc.getNonce();
         // Convert nonceCBytes to Base64 string format
@@ -195,19 +220,16 @@ public class Client {
         // Serialize ticket that we will send
         String tkt = in.serialize();
 
-        // MESSAGE 1: Client sends echoservice the nonce C and ticket
+        // MESSAGE 1: Client sends cloudservice the nonce C and ticket
         ClientHello hi = new ClientHello(nonceC, tkt); // Construct the packet
-        System.out.println(host.getAddress() + host.getPort());
-        Socket socket = Communication.connectAndSend(host.getAddress(), host.getPort(), hi); // Send the packet
+        System.out.println(theHost.getAddress() + theHost.getPort());
+        Socket socket = Communication.connectAndSend(theHost.getAddress(), theHost.getPort(), hi); // Send the packet
 
         //MESSAGE 3: Recieved the server hello
         ServerHello ServerHello_Packet = (ServerHello) Communication.read(socket);
 
-        System.out.println("ct: " + ServerHello_Packet.geteSKey());
-        System.out.println("iv: " + ServerHello_Packet.getIv());
-        System.out.println("user: " + user);
-        System.out.println("session name : " + ServerHello_Packet.getsName());
         System.out.println("session key: " + Base64.getEncoder().encodeToString(sessionKeyClient));
+        
         //Decrypt nonce c
         byte[] checkNonceCBytes = ClientSessionKeyDecryption.decrypt(ServerHello_Packet.geteSKey(), ServerHello_Packet.getIv(), user, sessionKeyClient, ServerHello_Packet.getsName());
         if (Arrays.equals(checkNonceCBytes, nonceCBytes)) {
@@ -226,14 +248,15 @@ public class Client {
             ClientResponse clientResponse_packet = new ClientResponse(nonceR, user, Base64.getEncoder().encodeToString(ClientSessionKeyEncryption.getRawIv()), Base64.getEncoder().encodeToString(encNonceS));
 
             // Send packet off
-            Socket socket2 = Communication.connectAndSend(host.getAddress(), host.getPort(), clientResponse_packet);
+            Socket socket2 = Communication.connectAndSend(theHost.getAddress(), theHost.getPort(), clientResponse_packet);
+            
             //MESSAGE 4: Client recieves status
             HandshakeStatus handshakeStatus_packet = (HandshakeStatus) Communication.read(socket2);
             // If message returns true
             if (handshakeStatus_packet.getMsg() == true) {
                 // Handshake protocol checks out
                 System.out.println("done");
-                CommPhase();
+                CommPhase(); //Begin Communication phase between cloud and user
             } else {
                 //Otherwise false, exit system
                 System.exit(0);
@@ -244,65 +267,82 @@ public class Client {
 
     }
 
+    /*
+    Communication phase.
+    This is where send and request files take place
+    */
     private static boolean CommPhase() throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
-        String filePass;
-        //print a welcome message then a menu with the options to create a user, download a file, upload a file, manage tags, and search for files by tag
+        
+        //Welcome Message
         System.out.println("Welcome to the Cloud Server!");
+        
+        String filePass; //Initialize filePass
+        //Initialize console and scanner objs
         Console console = System.console();
         Scanner scanner = new Scanner(System.in);
+        //Print options
         System.out.println("Options Menu:");
         System.out.println("1. Send Files");
         System.out.println("2. Request Files");
         System.out.println("3. Exit");
+        //Read input
         Scanner scanner2 = new Scanner(System.in);
         int input = scanner2.nextInt();
         scanner2.nextLine();
         Host hostt = getHost("cloudservice");
         Host hosttt = getHost("cloudservice");
         switch (input) {
+            //Sending files
             case 1:
-
+                
                 //File location
                 System.out.println("Enter location of file you wish to send:");
                 String fileLocation = scanner2.nextLine();
+                Path path = Paths.get(fileLocation);
+                boolean exists = Files.exists(path);
 
+                if (exists) {
+                
                 //File password
                 filePass = new String(console.readPassword("Create a file password:"));
-                SecretKey fileKey = scrypt.genKey(filePass, user);
+                SecretKey fileKey = scrypt.genKey(filePass, user); //SecretKey to encrypt file with
                 byte[] fileKeyBytes = fileKey.getEncoded();
                 System.out.println(Base64.getEncoder().encodeToString(fileKeyBytes));
-                
-                
-                //HERE: Encrypt file contents with file key
 
+                //TO-DO: Encrypt file contents with file key
+                
                 
                 //File keywords
                 System.out.println("Create associated key words. Please separate each word with a comma:");
                 String keywords = scanner2.nextLine();
                 String[] strings = keywords.split(",");
                 ArrayList<String> keywordList = new ArrayList<>(Arrays.asList(strings));
-                // 
-                String toStringArrayList = keywordList.toString();
-                // MESSAGE 1: Client sends echoservice the nonce C and ticket
-                KeyWordSend sendKeyWords = new KeyWordSend(toStringArrayList); // Construct the packet
-                System.out.println(hostt.getAddress() + hostt.getPort());
-                Socket socket = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), sendKeyWords); // Send the packet
-
-                break;
-            case 2:
+                String toStringArrayList = keywordList.toString(); //Convert to string for easy packet transport
                 
+                // MESSAGE 1: Client sends KeyWords for file send
+                KeyWordSend sendKeyWords = new KeyWordSend(toStringArrayList); // Construct the packet
+                Socket socket = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), sendKeyWords); // Send the packet
+                
+                } else {
+                    System.out.println("The file path is invalid.");
+                    break;
+                }
+                break;
+            // Request Files
+            case 2:
                 //File keywords
                 System.out.println("Enter key words. Please seperate each one with a comma");
                 String keywords2 = scanner2.nextLine();
                 String[] strings2 = keywords2.split(",");
                 ArrayList<String> keywordList2 = new ArrayList<>(Arrays.asList(strings2));
                 String toStringArray = keywordList2.toString();
-                 // MESSAGE 1: Client sends echoservice the nonce C and ticket
-                KeyWordRequest KeyWordRequest_packet = new KeyWordRequest(toStringArray); // Construct the packet
-                System.out.println(hosttt.getAddress() + hosttt.getPort());
-                Socket socket2 = Communication.connectAndSend(hosttt.getAddress(), hosttt.getPort(), KeyWordRequest_packet); // Send the packet
                 
+                // MESSAGE 1: Client sends KeyWords for file request
+                KeyWordRequest KeyWordRequest_packet = new KeyWordRequest(toStringArray); // Construct the packet
+                Socket socket2 = Communication.connectAndSend(hosttt.getAddress(), hosttt.getPort(), KeyWordRequest_packet); // Send the packet
+
                 break;
+            //Exit
             case 3:
                 System.exit(0);
                 break;

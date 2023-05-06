@@ -11,6 +11,12 @@
          "pass" : "k5e7skXb10GFHtwj8pbP4g==",
          "totp-key" : "1nG9wZ/8OE3pj+YHpfYwkuHUdMr3V9w+6Z4NBd1ObBnfAPoliGRpp8FIgUJBMM+Ia9wXLpKKO8PRjlgfSw/ZZQ==",
          "user" : "marky"
+      },
+      {
+         "salt" : "lHCXCdKwCshxuDLQumS6Mw==",
+         "pass" : "UA9BQInUVrEdIAEmj0ByKA==",
+         "totp-key" : "yVO8m76wiPPSbeB7uh24352gxvVs2MawgQZHf9oNdRCGEZWaqLnOJkDF7qz6HOSkikhkRM4yJ63iQpsly3Tprw==",
+         "user" : "luna"
       }
    ]
 }

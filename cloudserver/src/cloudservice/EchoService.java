@@ -1,19 +1,15 @@
 package cloudservice;
 
 import communication.Communication;
-import cloudServiceCrypto.EchoSessionKeyDecComm;
 import cloudServiceCrypto.EchoTktDecryption;
 import cloudServiceCrypto.EchoSessionKeyEncryption;
 import cloudServiceCrypto.EchoSessionKeyDecryption;
-import cloudServiceCrypto.EchoSessionKeyEncComm;
 import cloudservice.config.Config;
 import cloudservice.config.SSLConfig;
 import java.io.FileNotFoundException;
 import java.net.Socket;
-import java.net.ServerSocket;
 import java.io.IOException;
 import java.io.InvalidObjectException;
-import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -35,14 +31,12 @@ import merrimackutil.util.NonceCache;
 import merrimackutil.util.Tuple;
 import packets.ClientHello;
 import packets.ClientResponse;
-import packets.CommPhase;
 import packets.Packet;
 import packets.HandshakeStatus;
 import packets.KeyWordRequest;
 import packets.KeyWordSend;
 import packets.PacketType;
 import static packets.PacketType.ClientHello;
-import static packets.PacketType.CommPhase;
 import packets.ServerHello;
 import packets.Ticket;
 
@@ -211,23 +205,25 @@ public class EchoService {
                 ;
                 break;
                 
+                //Cloud Server receives key words to add to new file
                 case KeyWordSend: {
                     KeyWordSend KeyWordSend_packet = (KeyWordSend) packet;
                     String keyWords = KeyWordSend_packet.getKeyWords();
                     String[] arr = keyWords.split(",");
                     ArrayList<String> list = new ArrayList<>(Arrays.asList(arr));
-                    System.out.println("The list" + list);
+                    System.out.println(list);
 
                 }
                 ;
                 break;
                 
+                //Cloud server receives key words to search new file
                 case KeyWordRequest: {
                     KeyWordRequest KeyWordRequest_packet = (KeyWordRequest) packet;
                     String keyWords = KeyWordRequest_packet.getKeyWords();
                     String[] arr = keyWords.split(",");
                     ArrayList<String> list = new ArrayList<>(Arrays.asList(arr));
-                    System.out.println("bruh" + list);
+                    System.out.println(list);
 
                 }
                 ;
