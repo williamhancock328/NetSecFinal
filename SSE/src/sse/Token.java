@@ -7,4 +7,9 @@ package sse;
  */
 public class Token {
 
+    /**
+     * Default constructor
+     */
+    public Token(String encrypted_value)
+    
 }

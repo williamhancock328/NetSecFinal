@@ -21,7 +21,7 @@ public class EncryptedDocument {
        this.encoded_file = encoded_file;
    }
 
- 
+
    /**
     * Determines if this object is equal to EncryptedDocument
     * @param obj
