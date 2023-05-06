@@ -5,6 +5,12 @@
          "pass" : "kfEMeSI8Wgfq3bG674K3CA==",
          "totp-key" : "9fwBZT12U0ERMBIHVkzCZweWteBvCCXMjg08+Hv4k41QLcu/B8pmJ6o0wPSyZMLeHLpYloSRxaTd7WYBSYeRJw==",
          "user" : "user"
+      },
+      {
+         "salt" : "3Z4aUS0qV3akNZd7MfWt7w==",
+         "pass" : "C1BJNqzTz744HdsoFMnj1g==",
+         "totp-key" : "oh8oty8od+CRRX+TycgI7B9SPIH/tyz7A05bDEsE85gW3HQdP+9U0x08CSkA7SGZ32Psm5/PjQiMMpgU+YnhrQ==",
+         "user" : "marky"
       }
    ]
 }

@@ -51,7 +51,7 @@ public class Client {
      *
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws IOException, NoSuchMethodException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException {
+    public static void main(String[] args) throws IOException, NoSuchMethodException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
         //print a welcome message then a menu with the options to create a user, download a file, upload a file, manage tags, and search for files by tag
         System.out.println("Welcome to the File Sharing System!");
         System.out.println("Please enter the hosts file name.");
@@ -84,6 +84,7 @@ public class Client {
                     config = new Config(host);
                     Ticket tik = SessionKeyRequest();
                     System.out.println("Now we have the ticket.");
+                    Handshake(tik);
                 }
                 else{
                     System.out.println("Login failed.");
@@ -188,7 +189,7 @@ public class Client {
     private static boolean Handshake(Ticket in) throws IOException, NoSuchMethodException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
         //Client connects to echoservice
         Host host = getHost("echoservice");
-
+        System.out.println("GOT TO ECHOSERVICE");
         // Get fresh nonce C
         byte[] nonceCBytes = nc.getNonce();
         // Convert nonceCBytes to Base64 string format
