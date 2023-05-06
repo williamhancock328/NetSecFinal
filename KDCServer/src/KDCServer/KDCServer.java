@@ -164,8 +164,10 @@ public class KDCServer {
                     String receivedNonceB = AuthRequest_packet.getNonce();
                     byte[] nonceBToBytes = Base64.getDecoder().decode(receivedNonceB);
 
+                    //Check if this is nonce we already recieved
                     if (!nc.containsNonce(nonceBToBytes)) {
-
+                        //if not add it in as a now received nonce to the nonce cache
+                        nc.addNonce(nonceBToBytes);
                         int otp = AuthRequest_packet.getOtp();
                         //check pw
                         PwValue vaultEnt = v.GetPW(u);
@@ -204,19 +206,20 @@ public class KDCServer {
                     System.out.println(receivedNonceA);
                     byte[] nonceAToBytes = Base64.getDecoder().decode(receivedNonceA);
 
+                    //Check if this is nonce we already recieved
                     if (!nc.containsNonce(nonceAToBytes)) {
 
-                        //Add received nonce to nonce cache
+                        //if not add it in as a now received nonce to the nonce cache
                         nc.addNonce(nonceAToBytes);
 
                         String toStringNonceA = Base64.getEncoder().encodeToString(nonceAToBytes);
-                        
+
                         if (v.GetPW(user) != null) {
                             ServerResponse eresp = new ServerResponse(false, "User already exists.", "");
                             Communication.send(peer, eresp);
                             break;
-                        }                        
-                        
+                        }
+
                         // Construct an key for the HMAC.
                         KeyGenerator hmacKeyGen = KeyGenerator.getInstance("HmacSHA1");
                         SecretKey key = hmacKeyGen.generateKey();
@@ -248,6 +251,7 @@ public class KDCServer {
                     byte[] nonceCToBytes = Base64.getDecoder().decode(receivedNonceC);
 
                     if (!nc.containsNonce(nonceCToBytes)) {
+                        nc.addNonce(nonceCToBytes);
                         String sessionName = "";
                         String user = "";
                         String pw = "";
@@ -274,7 +278,7 @@ public class KDCServer {
                         }
 
                         //SessionKeyResponse chapStatus_packet = new SessionKeyResponse(sendSessionKey(user, sessionName, pw));
-                        Communication.send(peer, sendSessionKey(user, sessionName, pw, svcpw));
+                        Communication.send(peer, sendSessionKey(user, sessionName, pw, svcpw, receivedNonceC));
                     } else {
                         System.out.println("Replay attack detected");
                         System.exit(0);
@@ -291,7 +295,7 @@ public class KDCServer {
 
     //this is the part where session key is sent to client 
     //this is the part where session key is sent to client 
-    private static SessionKeyResponse sendSessionKey(String uname, String sName, String pw, String svcpw) {
+    private static SessionKeyResponse sendSessionKey(String uname, String sName, String pw, String svcpw, String nonce) {
         //validity period comes from config file  
 
         try {
@@ -307,7 +311,7 @@ public class KDCServer {
             SecretKey aesKey = aesKeyGen.generateKey();
             Tuple<byte[], byte[]> skeyiv = ServerMasterKeyEncryption.encrypt(svcpw, config.getValidity_period(), ctime, sName, sName, sName, aesKey);
             Tuple<byte[], byte[]> ukeyiv = ServerMasterKeyEncryption.encrypt(pw, config.getValidity_period(), ctime, uname, sName, uname, aesKey);
-            SessionKeyResponse toSend = new SessionKeyResponse(Base64.getEncoder().encodeToString(ukeyiv.getSecond()), Base64.getEncoder().encodeToString(ukeyiv.getFirst()), ctime, config.getValidity_period(), uname, sName, Base64.getEncoder().encodeToString(skeyiv.getSecond()), Base64.getEncoder().encodeToString(skeyiv.getFirst()));
+            SessionKeyResponse toSend = new SessionKeyResponse(Base64.getEncoder().encodeToString(ukeyiv.getSecond()), Base64.getEncoder().encodeToString(ukeyiv.getFirst()), ctime, config.getValidity_period(), uname, sName, Base64.getEncoder().encodeToString(skeyiv.getSecond()), Base64.getEncoder().encodeToString(skeyiv.getFirst()), nonce);
             //now we send!
             return toSend;
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException | InvalidKeySpecException ex) {

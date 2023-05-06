@@ -204,27 +204,45 @@ public class EchoService {
                 }
                 ;
                 break;
-                
+
                 //Cloud Server receives key words to add to new file
                 case KeyWordSend: {
                     KeyWordSend KeyWordSend_packet = (KeyWordSend) packet;
-                    String keyWords = KeyWordSend_packet.getKeyWords();
-                    String[] arr = keyWords.split(",");
-                    ArrayList<String> list = new ArrayList<>(Arrays.asList(arr));
-                    System.out.println(list);
+                    String stringNonceD = KeyWordSend_packet.getNonce();
+                    byte[] byteNonceD = Base64.getDecoder().decode(stringNonceD);
+                    if (!nc.containsNonce(byteNonceD)) {
 
+                        nc.addNonce(byteNonceD);
+
+                        String keyWords = KeyWordSend_packet.getKeyWords();
+                        String[] arr = keyWords.split(",");
+                        ArrayList<String> list = new ArrayList<>(Arrays.asList(arr));
+                        System.out.println(list);
+                    } else {
+                        System.out.println("Replay attack detected");
+                        System.exit(0);
+                    }
                 }
                 ;
                 break;
-                
+
                 //Cloud server receives key words to search new file
                 case KeyWordRequest: {
                     KeyWordRequest KeyWordRequest_packet = (KeyWordRequest) packet;
-                    String keyWords = KeyWordRequest_packet.getKeyWords();
-                    String[] arr = keyWords.split(",");
-                    ArrayList<String> list = new ArrayList<>(Arrays.asList(arr));
-                    System.out.println(list);
+                    String stringNonceE = KeyWordRequest_packet.getNonce();
+                    byte[] byteNonceE = Base64.getDecoder().decode(stringNonceE);
+                    if (!nc.containsNonce(byteNonceE)) {
 
+                        nc.addNonce(byteNonceE);
+
+                        String keyWords = KeyWordRequest_packet.getKeyWords();
+                        String[] arr = keyWords.split(",");
+                        ArrayList<String> list = new ArrayList<>(Arrays.asList(arr));
+                        System.out.println(list);
+                    } else {
+                        System.out.println("Replay attack detected");
+                        System.exit(0);
+                    }
                 }
                 ;
                 break;

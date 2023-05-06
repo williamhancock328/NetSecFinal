@@ -28,6 +28,7 @@ public class SessionKeyResponse implements Packet, JSONSerializable {
     private String sName;
     private String iv;
     private String eSKey;
+    private String nonce;
 
     /**
      * Default Constructor for a SessionKeyResponse
@@ -39,8 +40,9 @@ public class SessionKeyResponse implements Packet, JSONSerializable {
      * @param sName
      * @param iv
      * @param eSKey 
+     * @param nonce 
      */
-    public SessionKeyResponse(String uIv, String eSKeyAlice, long createTime, long validityTime, String uName, String sName, String iv, String eSKey) {
+    public SessionKeyResponse(String uIv, String eSKeyAlice, long createTime, long validityTime, String uName, String sName, String iv, String eSKey,String nonce) {
         this.uIv = uIv;
         this.eSKeyAlice = eSKeyAlice;
         this.createTime = createTime;
@@ -49,6 +51,7 @@ public class SessionKeyResponse implements Packet, JSONSerializable {
         this.sName = sName;
         this.iv = iv;
         this.eSKey = eSKey;
+        this.nonce = nonce;
     }
     
     /**
@@ -57,12 +60,14 @@ public class SessionKeyResponse implements Packet, JSONSerializable {
      * @param validityTime
      * @param uName
      * @param sName 
+     * @param nonce 
      */
-    public SessionKeyResponse(long createTime, long validityTime, String uName, String sName) {
+    public SessionKeyResponse(long createTime, long validityTime, String uName, String sName, String nonce) {
         this.createTime = createTime;
         this.validityTime = validityTime;
         this.uName = uName;
         this.sName = sName;
+        this.nonce = nonce;
     }
 
     public void setIv(String iv) {
@@ -104,12 +109,17 @@ public class SessionKeyResponse implements Packet, JSONSerializable {
     public String getuName() {
         return uName;
     }
-    
-    
+
+    public String getNonce() {
+        return nonce;
+    }
+
     /**
      * Converts a JSONObject into a ticket object
+     *
      * @param packet byte[] of information representing this packet
-     * @throws InvalidObjectException Thrown if {@code object} is not a Ticket JSONObject
+     * @throws InvalidObjectException Thrown if {@code object} is not a Ticket
+     * JSONObject
      */
     public SessionKeyResponse(String packet, PacketType packetType) throws InvalidObjectException {
         recieve(packet);
@@ -118,10 +128,10 @@ public class SessionKeyResponse implements Packet, JSONSerializable {
     /**
      * JSONSerializable implementations
      */
-    
     /**
      * Serializes the object into a JSON String
-     * @return 
+     *
+     * @return
      */
     @Override
     public String serialize() {
@@ -129,61 +139,74 @@ public class SessionKeyResponse implements Packet, JSONSerializable {
     }
 
     /**
-     * Converts a JSON type to this object
-     * Converts types of Byte[] into strings for travel
+     * Converts a JSON type to this object Converts types of Byte[] into strings
+     * for travel
+     *
      * @param jsont
-     * @throws InvalidObjectException 
+     * @throws InvalidObjectException
      */
     @Override
     public void deserialize(JSONType obj) throws InvalidObjectException {
         JSONObject tmp;
 
-        if (obj instanceof JSONObject)
-          {
-            tmp = (JSONObject)obj;
-            
-            if (tmp.containsKey("uIv"))
-              this.uIv = tmp.getString("uIv");
-            else
-              throw new InvalidObjectException("Expected an Ticket object -- uIv expected.");
-            
-            if (tmp.containsKey("eSKeyAlice"))
-              this.eSKeyAlice = tmp.getString("eSKeyAlice");
-            else
-              throw new InvalidObjectException("Expected an Ticket object -- eSKeyAlice expected.");
-            
-            if (tmp.containsKey("createTime"))
-              this.createTime = Long.parseLong(tmp.getString("createTime"));
-            else
-              throw new InvalidObjectException("Expected an Ticket object -- createTime (String --> Long) expected.");
-            
-            if (tmp.containsKey("validityTime"))
-              this.validityTime = Long.parseLong(tmp.getString("validityTime"));
-            else
-              throw new InvalidObjectException("Expected an Ticket object -- validityTime (String --> Long) expected.");
-            
-            if (tmp.containsKey("uName"))
-              this.uName = tmp.getString("uName");
-            else
-              throw new InvalidObjectException("Expected an Ticket object -- uName expected.");
-            
-            if (tmp.containsKey("sName"))
-              this.sName = tmp.getString("sName");
-            else
-              throw new InvalidObjectException("Expected an Ticket object -- sName expected.");
- 
-            if (tmp.containsKey("iv"))
-              this.iv = tmp.getString("iv");
-            else 
-              throw new InvalidObjectException("Expected an Ticket object -- iv (String) expected.");
-            
-            if (tmp.containsKey("eSKey"))
-              this.eSKey = tmp.getString("eSKey");
-            else 
-              throw new InvalidObjectException("Expected an Ticket object -- eSKey (String) expected.");
-          }
-          else 
+        if (obj instanceof JSONObject) {
+            tmp = (JSONObject) obj;
+
+            if (tmp.containsKey("uIv")) {
+                this.uIv = tmp.getString("uIv");
+            } else {
+                throw new InvalidObjectException("Expected an Ticket object -- uIv expected.");
+            }
+
+            if (tmp.containsKey("eSKeyAlice")) {
+                this.eSKeyAlice = tmp.getString("eSKeyAlice");
+            } else {
+                throw new InvalidObjectException("Expected an Ticket object -- eSKeyAlice expected.");
+            }
+
+            if (tmp.containsKey("createTime")) {
+                this.createTime = Long.parseLong(tmp.getString("createTime"));
+            } else {
+                throw new InvalidObjectException("Expected an Ticket object -- createTime (String --> Long) expected.");
+            }
+
+            if (tmp.containsKey("validityTime")) {
+                this.validityTime = Long.parseLong(tmp.getString("validityTime"));
+            } else {
+                throw new InvalidObjectException("Expected an Ticket object -- validityTime (String --> Long) expected.");
+            }
+
+            if (tmp.containsKey("uName")) {
+                this.uName = tmp.getString("uName");
+            } else {
+                throw new InvalidObjectException("Expected an Ticket object -- uName expected.");
+            }
+
+            if (tmp.containsKey("sName")) {
+                this.sName = tmp.getString("sName");
+            } else {
+                throw new InvalidObjectException("Expected an Ticket object -- sName expected.");
+            }
+
+            if (tmp.containsKey("iv")) {
+                this.iv = tmp.getString("iv");
+            } else {
+                throw new InvalidObjectException("Expected an Ticket object -- iv (String) expected.");
+            }
+
+            if (tmp.containsKey("eSKey")) {
+                this.eSKey = tmp.getString("eSKey");
+            } else {
+                throw new InvalidObjectException("Expected an Ticket object -- eSKey (String) expected.");
+            }
+            if (tmp.containsKey("nonce")) {
+                this.nonce = tmp.getString("nonce");
+            } else {
+                throw new InvalidObjectException("Expected an Ticket object -- nonce (String) expected.");
+            }
+        } else {
             throw new InvalidObjectException("Expected a Ticket - Type JSONObject not found.");
+        }
     }
 
     /**
@@ -203,6 +226,7 @@ public class SessionKeyResponse implements Packet, JSONSerializable {
         object.put("sName", this.sName);
         object.put("iv", this.iv);
         object.put("eSKey", this.eSKey);
+        object.put("nonce", this.nonce);
 
         return object;
     }

@@ -24,13 +24,15 @@ public class KeyWordSend implements Packet, JSONSerializable {
     
     // Packet Data
     private String keyWords;
+    private String nonce;
  
     /**
      * Constructs a new EnrollRequest packet
      * @param keyWords
      */
-    public KeyWordSend(String keyWords) {
+    public KeyWordSend(String keyWords, String nonce) {
         this.keyWords = keyWords;
+        this.nonce = nonce;
  
     }
 
@@ -38,6 +40,11 @@ public class KeyWordSend implements Packet, JSONSerializable {
         return keyWords;
     }
 
+    public String getNonce() {
+        return nonce;
+    }
+
+    
 
 
     /**
@@ -72,16 +79,21 @@ public class KeyWordSend implements Packet, JSONSerializable {
     public void deserialize(JSONType obj) throws InvalidObjectException {
         JSONObject tmp;
 
-        if (obj instanceof JSONObject)
-          {
-            tmp = (JSONObject)obj;
-            if (tmp.containsKey("keyWords"))
-              this.keyWords = tmp.getString("keyWords");
-            else
-              throw new InvalidObjectException("Expected a toString of ArrayList keyWords object -- user expected.");
-          }
-          else 
+        if (obj instanceof JSONObject) {
+            tmp = (JSONObject) obj;
+            if (tmp.containsKey("keyWords")) {
+                this.keyWords = tmp.getString("keyWords");
+            } else {
+                throw new InvalidObjectException("Expected a toString of ArrayList keyWords object -- user expected.");
+            }
+            if (tmp.containsKey("nonce")) {
+                this.nonce = tmp.getString("nonce");
+            } else {
+                throw new InvalidObjectException("Expected a nonce object -- user expected.");
+            }
+        } else {
             throw new InvalidObjectException("Expected a Ticket - Type JSONObject not found.");
+        }
     }
 
     /**
@@ -93,6 +105,7 @@ public class KeyWordSend implements Packet, JSONSerializable {
         JSONObject object = new JSONObject();
         object.put("packetType", PACKET_TYPE.toString());
         object.put("keyWords", this.keyWords);
+        object.put("nonce", this.nonce);
 
         return object;
     }

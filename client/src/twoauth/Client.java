@@ -47,9 +47,8 @@ public class Client {
     private static String service = "cloudservice"; // Service name 
 
     /**
-     * Client Side Communication
-     * Goal is to establish trust with
-     * KDC and gain access to cloud-server.From there, send or request files
+     * Client Side Communication Goal is to establish trust with KDC and gain
+     * access to cloud-server.From there, send or request files
      *
      * @param args the command line arguments
      * @throws java.io.IOException
@@ -68,9 +67,9 @@ public class Client {
         //Console and scanner objects
         Console console = System.console();
         Scanner scanner = new Scanner(System.in);
-      
+
         config = new Config(host); //Config to hosts.json
-        
+
         System.out.println("Login Menu:");
         System.out.println("1. Create a new user");
         System.out.println("2. Login as an existing user");
@@ -130,13 +129,13 @@ public class Client {
         nc.addNonce(nonceABytes);
         // Convert nonceABytes to Base64 string format
         String nonceA = Base64.getEncoder().encodeToString(nonceABytes);
-        
+
         EnrollRequest send = new EnrollRequest(user, pass, nonceA);
         SSLSocket out = Communication.connectAndSend(host, port, send);
         final Packet packet = Communication.read(out);
         ServerResponse ServerResponse_packet = (ServerResponse) packet;
         String checkNonce = ServerResponse_packet.getNonce();
-        if (ServerResponse_packet.getStatus()&& nonceA.equals(checkNonce)) {
+        if (ServerResponse_packet.getStatus() && nonceA.equals(checkNonce)) {
             System.out.println("Nonce Matched");
             System.out.println("Base 32 Key: " + ServerResponse_packet.getPayload());
         } else {
@@ -160,7 +159,7 @@ public class Client {
         nc.addNonce(nonceBBytes);
         // Convert nonceABytes to Base64 string format
         String nonceB = Base64.getEncoder().encodeToString(nonceBBytes);
-        
+
         AuthRequest send = new AuthRequest(user, pass, otp, nonceB);
         SSLSocket out = Communication.connectAndSend(host, port, send);
         final Packet packet = Communication.read(out);
@@ -189,10 +188,10 @@ public class Client {
     private static void uploadFile(String host, String pass, String port, String user, String ticketString, String[] tags, String filepath) {
 
     }
-    
+
     /*
     Get host method
-    */
+     */
     private static Host getHost(String host_name) {
         return hosts.stream().filter(n -> n.getHost_name().equalsIgnoreCase(host_name)).findFirst().orElse(null);
     }
@@ -201,7 +200,7 @@ public class Client {
     Session key request method
     Grants authenticated user access to
     cloud-server
-    */
+     */
     private static Ticket SessionKeyRequest() throws IOException, NoSuchMethodException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException {
         Host theHost = getHost("kdcd");
 
@@ -218,13 +217,20 @@ public class Client {
 
         // MESSAGE 2
         SessionKeyResponse sessKeyResp_Packet = (SessionKeyResponse) Communication.read(out); // Read for a packet  // KDC checks username validity and if valid, demands password and gives a nonce
+        String checkNonce = sessKeyResp_Packet.getNonce();
 
-        sessionKeyClient = ClientMasterKeyDecryption.decrypt(sessKeyResp_Packet.geteSKeyAlice(), sessKeyResp_Packet.getuIv(), user, pass, sessKeyResp_Packet.getCreateTime(), sessKeyResp_Packet.getValidityTime(), sessKeyResp_Packet.getsName());
-        System.out.println("Client session key: " + Arrays.toString(sessionKeyClient));
-        
+        if (checkNonce.equals(nonceC)) {
+            System.out.println("Nonce matched");
+            sessionKeyClient = ClientMasterKeyDecryption.decrypt(sessKeyResp_Packet.geteSKeyAlice(), sessKeyResp_Packet.getuIv(), user, pass, sessKeyResp_Packet.getCreateTime(), sessKeyResp_Packet.getValidityTime(), sessKeyResp_Packet.getsName());
+            System.out.println("Client session key: " + Arrays.toString(sessionKeyClient));
+
+        } else {
+            System.out.println("Replay attack detected");
+            System.exit(0);
+        }
         //close connection to KDC
         out.close();
-        
+
         //send the ticket
         return new Ticket(sessKeyResp_Packet.getCreateTime(), sessKeyResp_Packet.getValidityTime(), sessKeyResp_Packet.getuName(), sessKeyResp_Packet.getsName(), sessKeyResp_Packet.getIv(), sessKeyResp_Packet.geteSKey());
     }
@@ -232,7 +238,7 @@ public class Client {
     /*
     Handshake method.
     Establishes trust between client and cloud-server
-    */
+     */
     private static boolean Handshake(Ticket in) throws IOException, NoSuchMethodException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
         //Client connects to cloud service
         Host theHost = getHost("cloudservice");
@@ -254,7 +260,7 @@ public class Client {
         ServerHello ServerHello_Packet = (ServerHello) Communication.read(out);
 
         System.out.println("session key: " + Base64.getEncoder().encodeToString(sessionKeyClient));
-        
+
         //Decrypt nonce c
         byte[] checkNonceCBytes = ClientSessionKeyDecryption.decrypt(ServerHello_Packet.geteSKey(), ServerHello_Packet.getIv(), user, sessionKeyClient, ServerHello_Packet.getsName());
         if (Arrays.equals(checkNonceCBytes, nonceCBytes)) {
@@ -274,7 +280,7 @@ public class Client {
 
             // Send packet off
             SSLSocket out2 = Communication.connectAndSend(theHost.getAddress(), theHost.getPort(), clientResponse_packet);
-            
+
             //MESSAGE 4: Client recieves status
             HandshakeStatus handshakeStatus_packet = (HandshakeStatus) Communication.read(out2);
             // If message returns true
@@ -295,12 +301,12 @@ public class Client {
     /*
     Communication phase.
     This is where send and request files take place
-    */
+     */
     private static boolean CommPhase() throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
-        
+
         //Welcome Message
         System.out.println("Welcome to the Cloud Server!");
-        
+
         String filePass; //Initialize filePass
         //Initialize console and scanner objs
         Console console = System.console();
@@ -319,7 +325,13 @@ public class Client {
         switch (input) {
             //Sending files
             case 1:
-                
+                // Get fresh nonce D for MSG
+                byte[] nonceDBytes = nc.getNonce();
+                //Add nonceD to nonce cache
+                nc.addNonce(nonceDBytes);
+                // Convert nonceDBytes to Base64 string format
+                String nonceD = Base64.getEncoder().encodeToString(nonceDBytes);
+
                 //File location
                 System.out.println("Enter location of file you wish to send:");
                 String fileLocation = scanner2.nextLine();
@@ -327,27 +339,25 @@ public class Client {
                 boolean exists = Files.exists(path);
 
                 if (exists) {
-                
-                //File password
-                filePass = new String(console.readPassword("Create a file password:"));
-                SecretKey fileKey = scrypt.genKey(filePass, user); //SecretKey to encrypt file with
-                byte[] fileKeyBytes = fileKey.getEncoded();
-                System.out.println(Base64.getEncoder().encodeToString(fileKeyBytes));
 
-                //TO-DO: Encrypt file contents with file key
-                
-                
-                //File keywords
-                System.out.println("Create associated key words. Please separate each word with a comma:");
-                String keywords = scanner2.nextLine();
-                String[] strings = keywords.split(",");
-                ArrayList<String> keywordList = new ArrayList<>(Arrays.asList(strings));
-                String toStringArrayList = keywordList.toString(); //Convert to string for easy packet transport
-                
-                // MESSAGE 1: Client sends KeyWords for file send
-                KeyWordSend sendKeyWords = new KeyWordSend(toStringArrayList); // Construct the packet
-                SSLSocket out = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), sendKeyWords); // Send the packet
-                
+                    //File password
+                    filePass = new String(console.readPassword("Create a file password:"));
+                    SecretKey fileKey = scrypt.genKey(filePass, user); //SecretKey to encrypt file with
+                    byte[] fileKeyBytes = fileKey.getEncoded();
+                    System.out.println(Base64.getEncoder().encodeToString(fileKeyBytes));
+
+                    //TO-DO: Encrypt file contents with file key
+                    //File keywords
+                    System.out.println("Create associated key words. Please separate each word with a comma:");
+                    String keywords = scanner2.nextLine();
+                    String[] strings = keywords.split(",");
+                    ArrayList<String> keywordList = new ArrayList<>(Arrays.asList(strings));
+                    String toStringArrayList = keywordList.toString(); //Convert to string for easy packet transport
+
+                    // MESSAGE 1: Client sends KeyWords for file send
+                    KeyWordSend sendKeyWords = new KeyWordSend(toStringArrayList, nonceD); // Construct the packet
+                    SSLSocket out = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), sendKeyWords); // Send the packet
+
                 } else {
                     System.out.println("The file path is invalid.");
                     break;
@@ -355,15 +365,23 @@ public class Client {
                 break;
             // Request Files
             case 2:
+
+                // Get fresh nonce E for MSG
+                byte[] nonceEBytes = nc.getNonce();
+                //Add nonceE to nonce cache
+                nc.addNonce(nonceEBytes);
+                // Convert nonceEBytes to Base64 string format
+                String nonceE = Base64.getEncoder().encodeToString(nonceEBytes);
+
                 //File keywords
                 System.out.println("Enter key words. Please seperate each one with a comma");
                 String keywords2 = scanner2.nextLine();
                 String[] strings2 = keywords2.split(",");
                 ArrayList<String> keywordList2 = new ArrayList<>(Arrays.asList(strings2));
                 String toStringArray = keywordList2.toString();
-                
+
                 // MESSAGE 1: Client sends KeyWords for file request
-                KeyWordRequest KeyWordRequest_packet = new KeyWordRequest(toStringArray); // Construct the packet
+                KeyWordRequest KeyWordRequest_packet = new KeyWordRequest(toStringArray, nonceE); // Construct the packet
                 SSLSocket out = Communication.connectAndSend(hosttt.getAddress(), hosttt.getPort(), KeyWordRequest_packet); // Send the packet
 
                 break;
