@@ -257,9 +257,11 @@ public class Client {
         Scanner scanner2 = new Scanner(System.in);
         int input = scanner2.nextInt();
         scanner2.nextLine();
+        Host hostt = getHost("cloudservice");
+        Host hosttt = getHost("cloudservice");
         switch (input) {
             case 1:
-                Host host = getHost("cloudservice");
+
                 //File location
                 System.out.println("Enter location of file you wish to send:");
                 String fileLocation = scanner2.nextLine();
@@ -267,7 +269,8 @@ public class Client {
                 //File password
                 filePass = new String(console.readPassword("Create a file password:"));
                 SecretKey fileKey = scrypt.genKey(filePass, user);
-                System.out.println(Base64.getEncoder().encodeToString(fileKey));
+                byte[] fileKeyBytes = fileKey.getEncoded();
+                System.out.println(Base64.getEncoder().encodeToString(fileKeyBytes));
                 
                 
                 //HERE: Encrypt file contents with file key
@@ -282,17 +285,22 @@ public class Client {
                 String toStringArrayList = keywordList.toString();
                 // MESSAGE 1: Client sends echoservice the nonce C and ticket
                 KeyWordSend sendKeyWords = new KeyWordSend(toStringArrayList); // Construct the packet
-                System.out.println(host.getAddress() + host.getPort());
-                Socket socket = Communication.connectAndSend(host.getAddress(), host.getPort(), sendKeyWords); // Send the packet
+                System.out.println(hostt.getAddress() + hostt.getPort());
+                Socket socket = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), sendKeyWords); // Send the packet
 
                 break;
             case 2:
+                
                 //File keywords
                 System.out.println("Enter key words. Please seperate each one with a comma");
                 String keywords2 = scanner2.nextLine();
                 String[] strings2 = keywords2.split(",");
                 ArrayList<String> keywordList2 = new ArrayList<>(Arrays.asList(strings2));
-
+                String toStringArray = keywordList2.toString();
+                 // MESSAGE 1: Client sends echoservice the nonce C and ticket
+                KeyWordRequest KeyWordRequest_packet = new KeyWordRequest(toStringArray); // Construct the packet
+                System.out.println(hosttt.getAddress() + hosttt.getPort());
+                Socket socket2 = Communication.connectAndSend(hosttt.getAddress(), hosttt.getPort(), KeyWordRequest_packet); // Send the packet
                 
                 break;
             case 3:

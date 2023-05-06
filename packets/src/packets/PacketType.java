@@ -21,7 +21,8 @@ public enum PacketType {
       ServerHello(packets.ServerHello.class),
       Ticket(packets.Ticket.class),
       HandshakeStatus(packets.HandshakeStatus.class),
-      KeyWordSend(packets.KeyWordSend.class);
+      KeyWordSend(packets.KeyWordSend.class),
+      KeyWordRequest(packets.KeyWordRequest.class);
 
       
     private Class packetClass;

@@ -1,5 +1,6 @@
 package communication;
 
+import packets.KeyWordRequest;
 import packets.ServerResponse;
 import packets.PacketType;
 import packets.Packet;
@@ -127,6 +128,7 @@ public class Communication {
             case HandshakeStatus: return new HandshakeStatus(line, packetType);
             case Ticket: return new Ticket(line, packetType);
             case KeyWordSend: return new KeyWordSend(line, packetType);
+            case KeyWordRequest: return new KeyWordRequest(line, packetType);
             default:
                 return null;
         }

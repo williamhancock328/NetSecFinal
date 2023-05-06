@@ -38,6 +38,7 @@ import packets.ClientResponse;
 import packets.CommPhase;
 import packets.Packet;
 import packets.HandshakeStatus;
+import packets.KeyWordRequest;
 import packets.KeyWordSend;
 import packets.PacketType;
 import static packets.PacketType.ClientHello;
@@ -209,12 +210,24 @@ public class EchoService {
                 }
                 ;
                 break;
+                
                 case KeyWordSend: {
                     KeyWordSend KeyWordSend_packet = (KeyWordSend) packet;
                     String keyWords = KeyWordSend_packet.getKeyWords();
                     String[] arr = keyWords.split(",");
                     ArrayList<String> list = new ArrayList<>(Arrays.asList(arr));
                     System.out.println("The list" + list);
+
+                }
+                ;
+                break;
+                
+                case KeyWordRequest: {
+                    KeyWordRequest KeyWordRequest_packet = (KeyWordRequest) packet;
+                    String keyWords = KeyWordRequest_packet.getKeyWords();
+                    String[] arr = keyWords.split(",");
+                    ArrayList<String> list = new ArrayList<>(Arrays.asList(arr));
+                    System.out.println("bruh" + list);
 
                 }
                 ;
