@@ -1,8 +1,6 @@
 
 package sse;
 
-import java.util.UUID;
-
 /**
  * Represents a single immutable Token Object. 
  * @author William Hancock
@@ -39,5 +37,10 @@ public class Token {
         // Return if the comparisons are equal
         return getValue().equalsIgnoreCase(other.getValue());
     }
+   
+   @Override
+   public String toString() {
+       return getValue();
+   }
     
 }

@@ -11,6 +11,7 @@ import merrimackutil.json.JsonIO;
 import merrimackutil.json.types.JSONArray;
 import merrimackutil.json.types.JSONObject;
 import merrimackutil.json.types.JSONType;
+import sse.DocumentCollection;
 
 /**
  * Represents the database that holds values of EncryptedDocuments
@@ -30,11 +31,11 @@ public class Database implements JSONSerializable {
             throw new FileNotFoundException("File from path for EchoServiceConfig does not point to a vadlid configuration json file.");
         }
         
-        // Construct JSON Object and load hosts
+        // Construct JSON Object and load entries
         JSONObject obj = JsonIO.readObject(file);
-        JSONArray array = obj.getArray("hosts");
+        JSONArray entries = obj.getArray("entries");
         // deserialize
-        deserialize(array);
+        deserialize(entries);
     }
 
     @Override
@@ -47,13 +48,13 @@ public class Database implements JSONSerializable {
         if(type instanceof JSONArray) {
             JSONArray array = (JSONArray) type;
             
-            // Construct a list of hosts
-            List<Host> hosts = array.stream()
+            // Construct a list of entries
+            List<Entry> entries = array.stream()
                     .filter(n -> n instanceof JSONObject)
                     .map(n -> (JSONObject)n)
                     .map(n -> {
                         try {
-                            return new Host(n);
+                            return new Entry(n);
                         } catch(InvalidObjectException e) {
                             return null;
                         }
@@ -61,19 +62,18 @@ public class Database implements JSONSerializable {
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
             
-            // Add all hosts to the SSO Client.
-            twoauth.Client.hosts.addAll(hosts);
+            sse.SSE.getDocCollection().fromDatabase(entries);
         }       
     }
 
     @Override
     public JSONType toJSONType() {
         JSONObject obj = new JSONObject();
-        JSONArray arr = new JSONArray();
+        JSONArray entries = new JSONArray();
         
-        arr.addAll(twoauth.Client.hosts); // Add all hosts to the array.
+        entries.addAll(sse.SSE.getDocCollection().toEntries());
         
-        obj.put("hosts", arr); // Assign the hosts array.
+        obj.put("entries", entries); // Assign the entries array.
         return obj; // We are never reading this file to JSON.
     }
 
