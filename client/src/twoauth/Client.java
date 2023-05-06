@@ -329,8 +329,7 @@ public class Client {
                 byte[] nonceDBytes = nc.getNonce();
                 //Add nonceD to nonce cache
                 nc.addNonce(nonceDBytes);
-                // Convert nonceDBytes to Base64 string format
-                String nonceD = Base64.getEncoder().encodeToString(nonceDBytes);
+
 
                 //File location
                 System.out.println("Enter location of file you wish to send:");
@@ -339,35 +338,55 @@ public class Client {
                 boolean exists = Files.exists(path);
 
                 if (exists) {
-//File password
+                    //File password
                     filePass = new String(console.readPassword("Create a file password:"));
                     SecretKey fileKey = scrypt.genKey(filePass, user); //SecretKey to encrypt file with
                     byte[] fileKeyBytes = fileKey.getEncoded();
                     System.out.println(Base64.getEncoder().encodeToString(fileKeyBytes));
 
-//TO-DO: Encrypt file contents with file key
-//File keywords
+                    //TO-DO: Encrypt file contents with file key
+                    
+                    //File keywords
                     System.out.println("Create associated key words. Please separate each word with a comma:");
                     String keywords = scanner2.nextLine();
-                    String[] strings = keywords.split(",");
+                    String[] strings = keywords.split(" ");
                     ArrayList<String> keywordList = new ArrayList<>(Arrays.asList(strings));
 
-// Encode the file key as a base64 string
+                    // Encode the file key as a base64 string
                     String fileKeyBase64 = Base64.getEncoder().encodeToString(fileKeyBytes);
                     System.out.println(fileKeyBase64);
 
-// Encode the keywords as a single string using a comma separator
-                    String encodedKeywords = String.join(",", keywordList);
-                    byte[] byteKeyWords = Base64.getEncoder().encode(encodedKeywords.getBytes());
+                    // Encode the keywords as a single string using a comma separator
+                    //String encodedKeywords = String.join(",", keywordList);
+                    String encoded = Base64.getEncoder().encodeToString(keywordList.toString().getBytes());
+                    System.out.println("Encoded: " + encoded);
 
+                    byte[] decodedBytes = Base64.getDecoder().decode(encoded);
+                    String decodedString = new String(decodedBytes);
+                    System.out.println("Decoded: " + decodedString);
+
+                    //Encrypt the key words
+                    byte[] EncKeyWords = ClientSessionKeyEncryption.encrypt(sessionKeyClient, decodedBytes, user, service);
+                    String StringEncKeyWords = Base64.getEncoder().encodeToString(EncKeyWords);
+                    System.out.println("Client side enc. keywords: " + StringEncKeyWords);
+
+                    // IV used in encryption
+                    byte[] iv = ClientSessionKeyEncryption.getRawIv();
+                    String stringIV = Base64.getEncoder().encodeToString(iv);
+                    System.out.println(stringIV);
+                    
                     byte[] EncNonce = ClientSessionKeyEncryption.encrypt(sessionKeyClient, nonceDBytes, user, service);
                     String StringEncNonce = Base64.getEncoder().encodeToString(EncNonce);
-
-                    byte[] EncKeyWords = ClientSessionKeyEncryption.encrypt(sessionKeyClient, byteKeyWords, user, service);
-                    String StringEncKeyWords = Base64.getEncoder().encodeToString(EncKeyWords);
-
-// MESSAGE 1: Client sends KeyWords for file send
-                    KeyWordSend sendKeyWords = new KeyWordSend(StringEncKeyWords, StringEncNonce); // Construct the packet
+                    // Convert nonceDBytes to Base64 string format
+                    System.out.println("Client side enc. nonce: " + StringEncNonce);
+                   
+                    // IV used in encryption
+                    byte[] iv2 = ClientSessionKeyEncryption.getRawIv();
+                    String stringIV2 = Base64.getEncoder().encodeToString(iv2);
+                    System.out.println(stringIV2);
+                    
+                    // MESSAGE 1: Client sends KeyWords for file send
+                    KeyWordSend sendKeyWords = new KeyWordSend(StringEncKeyWords, StringEncNonce, stringIV, user); // Construct the packet
                     SSLSocket out = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), sendKeyWords); // Send the packet
 
 
@@ -393,6 +412,7 @@ public class Client {
                 ArrayList<String> keywordList2 = new ArrayList<>(Arrays.asList(strings2));
                 String toStringArray = keywordList2.toString();
 
+                
                 // MESSAGE 1: Client sends KeyWords for file request
                 KeyWordRequest KeyWordRequest_packet = new KeyWordRequest(toStringArray, nonceE); // Construct the packet
                 SSLSocket out = Communication.connectAndSend(hosttt.getAddress(), hosttt.getPort(), KeyWordRequest_packet); // Send the packet

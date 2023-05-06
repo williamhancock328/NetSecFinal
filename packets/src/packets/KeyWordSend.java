@@ -25,14 +25,18 @@ public class KeyWordSend implements Packet, JSONSerializable {
     // Packet Data
     private String keyWords;
     private String nonce;
+    private String iv;
+    private String user;
  
     /**
      * Constructs a new EnrollRequest packet
      * @param keyWords
      */
-    public KeyWordSend(String keyWords, String nonce) {
+    public KeyWordSend(String keyWords, String nonce, String iv,  String user) {
         this.keyWords = keyWords;
         this.nonce = nonce;
+        this.iv = iv;
+        this.user = user;
  
     }
 
@@ -44,8 +48,16 @@ public class KeyWordSend implements Packet, JSONSerializable {
         return nonce;
     }
 
-    
+    public String getIv() {
+        return iv;
+    }
 
+    public String getUser() {
+        return user;
+    }
+
+    
+    
 
     /**
      * Converts a JSONObject into a ticket object
@@ -84,12 +96,22 @@ public class KeyWordSend implements Packet, JSONSerializable {
             if (tmp.containsKey("keyWords")) {
                 this.keyWords = tmp.getString("keyWords");
             } else {
-                throw new InvalidObjectException("Expected a toString of ArrayList keyWords object -- user expected.");
+                throw new InvalidObjectException("Expected a toString of ArrayList keyWords object -- ArrayList keyWords expected.");
             }
             if (tmp.containsKey("nonce")) {
                 this.nonce = tmp.getString("nonce");
             } else {
-                throw new InvalidObjectException("Expected a nonce object -- user expected.");
+                throw new InvalidObjectException("Expected a nonce object -- nonce expected.");
+            }
+            if (tmp.containsKey("iv")) {
+                this.iv = tmp.getString("iv");
+            } else {
+                throw new InvalidObjectException("Expected a iv object -- iv expected.");
+            }
+            if (tmp.containsKey("user")) {
+                this.user = tmp.getString("user");
+            } else {
+                throw new InvalidObjectException("Expected a user object -- user expected.");
             }
         } else {
             throw new InvalidObjectException("Expected a Ticket - Type JSONObject not found.");
@@ -106,6 +128,8 @@ public class KeyWordSend implements Packet, JSONSerializable {
         object.put("packetType", PACKET_TYPE.toString());
         object.put("keyWords", this.keyWords);
         object.put("nonce", this.nonce);
+        object.put("iv", this.iv);
+        object.put("user", this.user);
 
         return object;
     }

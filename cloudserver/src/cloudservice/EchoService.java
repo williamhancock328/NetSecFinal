@@ -208,8 +208,34 @@ public class EchoService {
                 //Cloud Server receives key words to add to new file
                 case KeyWordSend: {
                     KeyWordSend KeyWordSend_packet = (KeyWordSend) packet;
-                    String stringNonceD = KeyWordSend_packet.getNonce();
-                    byte[] byteNonceD = Base64.getDecoder().decode(stringNonceD);
+                    String ct_stringNonceD = KeyWordSend_packet.getNonce();
+                    String user = KeyWordSend_packet.getUser();
+                    String ctKeywords = KeyWordSend_packet.getKeyWords();
+                    String iv = KeyWordSend_packet.getIv();
+                    
+                    System.out.println("Server side enc. keywords:" + ctKeywords);
+                    System.out.println("key word iv: " + iv);
+                    
+                    System.out.println("Server side enc. nonce:" + ct_stringNonceD);                    
+                    //byte[] nonce = EchoSessionKeyDecryption.decrypt(ct_stringNonceD, iv, user, serverSidesessionKey);
+                   
+                    System.out.println("");
+                     System.out.println("");
+                      System.out.println("");
+                       System.out.println("");
+                        System.out.println("");
+                         System.out.println("");
+                          System.out.println("");
+                       
+                    
+                    byte[] byteKeywords = EchoSessionKeyDecryption.decrypt(ctKeywords, iv, user, serverSidesessionKey);
+                    //String decrypted_keywords = Base64.getEncoder().encodeToString(byteKeywords);
+                    //byte[] decodedBytes = Base64.getDecoder().decode(encoded);
+                    String decodedString = new String(byteKeywords);
+                    
+                    System.out.println("Decryped keywords!!! ->" + decodedString);
+                    
+                    byte[] byteNonceD = Base64.getDecoder().decode(ct_stringNonceD);
                     if (!nc.containsNonce(byteNonceD)) {
 
                         nc.addNonce(byteNonceD);
@@ -218,7 +244,7 @@ public class EchoService {
                         String[] arr = keyWords.split(",");
                         ArrayList<String> list = new ArrayList<>(Arrays.asList(arr));
                         System.out.println(list);
-                        System.out.println(stringNonceD);
+                        System.out.println(ct_stringNonceD);
                     } else {
                         System.out.println("Replay attack detected");
                         System.exit(0);
