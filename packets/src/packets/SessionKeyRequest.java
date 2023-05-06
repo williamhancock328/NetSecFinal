@@ -22,15 +22,17 @@ public class SessionKeyRequest implements Packet, JSONSerializable {
     // Packet Data
     private String uName;
     private String sName;
+    private String nonce;
 
     /**
      * Default Constructor for a SessionKeyResponse
      * @param uName
      * @param sName 
      */
-    public SessionKeyRequest(String uName, String sName) {
+    public SessionKeyRequest(String uName, String sName, String nonce) {
         this.uName = uName;
         this.sName = sName;
+        this.nonce = nonce;
     }
 
     public String getuName() {
@@ -40,6 +42,12 @@ public class SessionKeyRequest implements Packet, JSONSerializable {
     public String getsName() {
         return sName;
     }
+
+    public String getNonce() {
+        return nonce;
+    }
+    
+    
     
 
     /**
@@ -74,22 +82,29 @@ public class SessionKeyRequest implements Packet, JSONSerializable {
     public void deserialize(JSONType obj) throws InvalidObjectException {
         JSONObject tmp;
 
-        if (obj instanceof JSONObject)
-          {
-            tmp = (JSONObject)obj;
+        if (obj instanceof JSONObject) {
+            tmp = (JSONObject) obj;
 
-            if (tmp.containsKey("uName"))
-              this.uName = tmp.getString("uName");
-            else
-              throw new InvalidObjectException("Expected an Ticket object -- uName expected.");
-            
-            if (tmp.containsKey("sName"))
-              this.sName = tmp.getString("sName");
-            else
-              throw new InvalidObjectException("Expected an Ticket object -- sName expected.");
-          }
-          else 
+            if (tmp.containsKey("uName")) {
+                this.uName = tmp.getString("uName");
+            } else {
+                throw new InvalidObjectException("Expected an Ticket object -- uName expected.");
+            }
+
+            if (tmp.containsKey("sName")) {
+                this.sName = tmp.getString("sName");
+            } else {
+                throw new InvalidObjectException("Expected an Ticket object -- sName expected.");
+            }
+
+            if (tmp.containsKey("nonce")) {
+                this.nonce = tmp.getString("nonce");
+            } else {
+                throw new InvalidObjectException("Expected an Ticket object -- nonce expected.");
+            }
+        } else {
             throw new InvalidObjectException("Expected a Ticket - Type JSONObject not found.");
+        }
     }
 
     /**
@@ -103,6 +118,7 @@ public class SessionKeyRequest implements Packet, JSONSerializable {
         object.put("packetType", PACKET_TYPE.toString());
         object.put("uName", this.uName);
         object.put("sName", this.sName);
+        object.put("nonce", this.nonce);
 
         return object;
     }
