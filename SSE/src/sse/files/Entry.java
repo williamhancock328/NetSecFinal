@@ -1,8 +1,11 @@
 package sse.files;
 
 import java.io.InvalidObjectException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import merrimackutil.json.JSONSerializable;
+import merrimackutil.json.types.JSONArray;
 import merrimackutil.json.types.JSONObject;
 import merrimackutil.json.types.JSONType;
 
@@ -56,55 +59,86 @@ public class Entry implements JSONSerializable {
         if(jsont instanceof JSONObject) {
             JSONObject obj = (JSONObject) jsont;
             
+            // ID 
             if(obj.containsKey("ID")) {
                 this.ID = obj.getString("ID");
-            } else { throw new InvalidObjectException("Expected an Host object -- host-name expected."); }
-                        
-            if(obj.containsKey("address")) {
-                this.address = obj.getString("address");
-            } else { throw new InvalidObjectException("Expected an Host object -- address expected."); }
+            } else { throw new InvalidObjectException("Expected an Entry object -- ID expected."); }
+                  
+            // Document
+            if(obj.containsKey("document")) {
+                this.document = obj.getString("document");
+            } else { throw new InvalidObjectException("Expected an Entry object -- document expected."); }
             
-            if(obj.containsKey("port")) {
-                this.port = obj.getInt("port");
-            } else { throw new InvalidObjectException("Expected an Host object -- port expected."); }
+            // Tokens
+            if(obj.containsKey("tokens")) {
+                this.tokens = new ArrayList<>();
+                for(Object o : obj.getArray("tokens")) {
+                    if(o instanceof String) {
+                        this.tokens.add((String)o);
+                    }
+                }
+            } else { throw new InvalidObjectException("Expected an Entry object -- array tokens expected."); }
+            
+            // Users
+            if(obj.containsKey("users")) {
+                this.users = new ArrayList<>();
+                for(Object o : obj.getArray("users")) {
+                    if(o instanceof String) {
+                        this.users.add((String)o);
+                    }
+                }
+            } else { throw new InvalidObjectException("Expected an Entry object -- array users expected."); }
         }
     }
 
     @Override
     public JSONType toJSONType() {
         JSONObject obj = new JSONObject();
-        obj.put("host-name", this.getHost_name());
-        obj.put("address", this.getAddress());
-        obj.put("port", this.getPort());
+        
+        JSONArray json_tokens = new JSONArray();
+        json_tokens.addAll(getTokens());
+        
+        JSONArray json_users = new JSONArray();
+        json_users.addAll(getUsers());
+        
+        obj.put("ID", this.getID());
+        obj.put("document", this.getDocument());
+        obj.put("tokens", json_tokens);
+        obj.put("users", json_users);
 
         return obj; // We should never be writing to a file.
     }
-    
-    
+
     /**
      * Accessors
      */
     
     /**
-     * @return the host_name
+     * @return the ID
      */
-    public String getHost_name() {
-        return host_name;
+    public String getID() {
+        return ID;
     }
 
     /**
-     * @return the address
+     * @return the document
      */
-    public String getAddress() {
-        return address;
+    public String getDocument() {
+        return document;
     }
 
     /**
-     * @return the port
+     * @return the tokens
      */
-    public int getPort() {
-        return port;
+    public List<String> getTokens() {
+        return tokens;
     }
-    
-    
+
+    /**
+     * @return the users
+     */
+    public List<String> getUsers() {
+        return users;
+    } 
+   
 }

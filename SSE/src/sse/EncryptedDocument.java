@@ -1,6 +1,7 @@
 
 package sse;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -11,14 +12,28 @@ public class EncryptedDocument {
     
    private String ID; 
    private String encoded_file;
+   private List<String> users; // List of users who have access too the file (usernames)
    
    /**
-    * Main constructor
+    * Construction constructor
     * @param encoded_file 
     */
-   public EncryptedDocument(String encoded_file) {
+   public EncryptedDocument(String encoded_file, List<String> users) {
        this.ID = UUID.randomUUID().toString();
        this.encoded_file = encoded_file;
+   }
+   
+   /**
+    * Loading constructor
+    * 
+    * @param ID
+    * @param encoded_file
+    * @param users 
+    */
+   public EncryptedDocument(String ID, String encoded_file, List<String> users) {
+       this.ID = ID;
+       this.encoded_file = encoded_file;
+       this.users = users;
    }
 
 
@@ -51,7 +66,11 @@ public class EncryptedDocument {
         return encoded_file;
     }
 
-   
-   
+    /**
+     * @return the users
+     */
+    public List<String> getUsers() {
+        return users;
+    }
 
 }
