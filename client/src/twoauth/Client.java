@@ -329,7 +329,8 @@ public class Client {
                 byte[] nonceDBytes = nc.getNonce();
                 //Add nonceD to nonce cache
                 nc.addNonce(nonceDBytes);
-
+                
+                
 
                 //File location
                 System.out.println("Enter location of file you wish to send:");
@@ -379,6 +380,7 @@ public class Client {
                     String StringEncNonce = Base64.getEncoder().encodeToString(EncNonce);
                     // Convert nonceDBytes to Base64 string format
                     System.out.println("Client side enc. nonce: " + StringEncNonce);
+                    System.out.println("OG nonce " + Base64.getEncoder().encodeToString(nonceDBytes));
                    
                     // IV used in encryption
                     byte[] iv2 = ClientSessionKeyEncryption.getRawIv();
@@ -386,7 +388,7 @@ public class Client {
                     System.out.println(stringIV2);
                     
                     // MESSAGE 1: Client sends KeyWords for file send
-                    KeyWordSend sendKeyWords = new KeyWordSend(StringEncKeyWords, StringEncNonce, stringIV, user); // Construct the packet
+                    KeyWordSend sendKeyWords = new KeyWordSend(StringEncKeyWords, StringEncNonce, stringIV, user, stringIV2); // Construct the packet
                     SSLSocket out = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), sendKeyWords); // Send the packet
 
 

@@ -212,6 +212,7 @@ public class EchoService {
                     String user = KeyWordSend_packet.getUser();
                     String ctKeywords = KeyWordSend_packet.getKeyWords();
                     String iv = KeyWordSend_packet.getIv();
+                    String iv2 = KeyWordSend_packet.getIv2();
                     
                     System.out.println("Server side enc. keywords:" + ctKeywords);
                     System.out.println("key word iv: " + iv);
@@ -234,8 +235,13 @@ public class EchoService {
                     String decodedString = new String(byteKeywords);
                     
                     System.out.println("Decryped keywords!!! ->" + decodedString);
+                    //System.out.println("iv2 ->" + KeyWordSend_packet.getIv2());
                     
-                    byte[] byteNonceD = Base64.getDecoder().decode(ct_stringNonceD);
+                    byte[] byteNonceD = EchoSessionKeyDecryption.decrypt(ct_stringNonceD, iv2, user, serverSidesessionKey);
+                    String ptNonce = Base64.getEncoder().encodeToString(byteNonceD);
+                    System.out.println("Decrypted nonce -> " + ptNonce);
+                    
+                    //byte[] byteNonceD = Base64.getDecoder().decode(ct_stringNonceD);
                     if (!nc.containsNonce(byteNonceD)) {
 
                         nc.addNonce(byteNonceD);
@@ -244,7 +250,7 @@ public class EchoService {
                         String[] arr = keyWords.split(",");
                         ArrayList<String> list = new ArrayList<>(Arrays.asList(arr));
                         System.out.println(list);
-                        System.out.println(ct_stringNonceD);
+
                     } else {
                         System.out.println("Replay attack detected");
                         System.exit(0);
