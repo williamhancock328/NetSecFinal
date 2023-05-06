@@ -3,6 +3,7 @@ package twoauth;
 import ClientServerCrypto.ClientMasterKeyDecryption;
 import ClientServerCrypto.ClientSessionKeyDecryption;
 import ClientServerCrypto.ClientSessionKeyEncryption;
+import ClientServerCrypto.scrypt;
 import packets.*;
 import java.util.Objects;
 import javax.net.ssl.SSLSocket;
@@ -26,6 +27,7 @@ import java.util.Scanner;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
 import merrimackutil.util.NonceCache;
 
 /**
@@ -242,7 +244,7 @@ public class Client {
 
     }
 
-    private static boolean CommPhase() throws IOException {
+    private static boolean CommPhase() throws IOException, InvalidKeySpecException, NoSuchAlgorithmException {
         String filePass;
         //print a welcome message then a menu with the options to create a user, download a file, upload a file, manage tags, and search for files by tag
         System.out.println("Welcome to the Cloud Server!");
@@ -264,7 +266,13 @@ public class Client {
 
                 //File password
                 filePass = new String(console.readPassword("Create a file password:"));
+                SecretKey fileKey = scrypt.genKey(filePass, user);
+                System.out.println(Base64.getEncoder().encodeToString(fileKey));
+                
+                
+                //HERE: Encrypt file contents with file key
 
+                
                 //File keywords
                 System.out.println("Create associated key words. Please separate each word with a comma:");
                 String keywords = scanner2.nextLine();
