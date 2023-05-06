@@ -185,20 +185,20 @@ public class Client {
     cloud-server
     */
     private static Ticket SessionKeyRequest() throws IOException, NoSuchMethodException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException {
-        Host host = getHost("kdcd");
+        Host theHost = getHost("kdcd");
 
         // MESSAGE 1: Client sends kdc username and service name
         SessionKeyRequest req = new SessionKeyRequest(user, service); // Construct the packet
-        Socket socket = Communication.connectAndSend(host.getAddress(), host.getPort(), req); // Send the packet
+        SSLSocket out = Communication.connectAndSend(theHost.getAddress(), theHost.getPort(), req); // Send the packet
 
         // MESSAGE 2
-        SessionKeyResponse sessKeyResp_Packet = (SessionKeyResponse) Communication.read(socket); // Read for a packet  // KDC checks username validity and if valid, demands password and gives a nonce
+        SessionKeyResponse sessKeyResp_Packet = (SessionKeyResponse) Communication.read(out); // Read for a packet  // KDC checks username validity and if valid, demands password and gives a nonce
 
         sessionKeyClient = ClientMasterKeyDecryption.decrypt(sessKeyResp_Packet.geteSKeyAlice(), sessKeyResp_Packet.getuIv(), user, pass, sessKeyResp_Packet.getCreateTime(), sessKeyResp_Packet.getValidityTime(), sessKeyResp_Packet.getsName());
         System.out.println("Client session key: " + Arrays.toString(sessionKeyClient));
         
         //close connection to KDC
-        socket.close();
+        out.close();
         
         //send the ticket
         return new Ticket(sessKeyResp_Packet.getCreateTime(), sessKeyResp_Packet.getValidityTime(), sessKeyResp_Packet.getuName(), sessKeyResp_Packet.getsName(), sessKeyResp_Packet.getIv(), sessKeyResp_Packet.geteSKey());
@@ -223,10 +223,10 @@ public class Client {
         // MESSAGE 1: Client sends cloudservice the nonce C and ticket
         ClientHello hi = new ClientHello(nonceC, tkt); // Construct the packet
         System.out.println(theHost.getAddress() + theHost.getPort());
-        Socket socket = Communication.connectAndSend(theHost.getAddress(), theHost.getPort(), hi); // Send the packet
+        SSLSocket out = Communication.connectAndSend(theHost.getAddress(), theHost.getPort(), hi); // Send the packet
 
         //MESSAGE 3: Recieved the server hello
-        ServerHello ServerHello_Packet = (ServerHello) Communication.read(socket);
+        ServerHello ServerHello_Packet = (ServerHello) Communication.read(out);
 
         System.out.println("session key: " + Base64.getEncoder().encodeToString(sessionKeyClient));
         
@@ -248,10 +248,10 @@ public class Client {
             ClientResponse clientResponse_packet = new ClientResponse(nonceR, user, Base64.getEncoder().encodeToString(ClientSessionKeyEncryption.getRawIv()), Base64.getEncoder().encodeToString(encNonceS));
 
             // Send packet off
-            Socket socket2 = Communication.connectAndSend(theHost.getAddress(), theHost.getPort(), clientResponse_packet);
+            SSLSocket out2 = Communication.connectAndSend(theHost.getAddress(), theHost.getPort(), clientResponse_packet);
             
             //MESSAGE 4: Client recieves status
-            HandshakeStatus handshakeStatus_packet = (HandshakeStatus) Communication.read(socket2);
+            HandshakeStatus handshakeStatus_packet = (HandshakeStatus) Communication.read(out2);
             // If message returns true
             if (handshakeStatus_packet.getMsg() == true) {
                 // Handshake protocol checks out
@@ -321,7 +321,7 @@ public class Client {
                 
                 // MESSAGE 1: Client sends KeyWords for file send
                 KeyWordSend sendKeyWords = new KeyWordSend(toStringArrayList); // Construct the packet
-                Socket socket = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), sendKeyWords); // Send the packet
+                SSLSocket out = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), sendKeyWords); // Send the packet
                 
                 } else {
                     System.out.println("The file path is invalid.");
@@ -339,7 +339,7 @@ public class Client {
                 
                 // MESSAGE 1: Client sends KeyWords for file request
                 KeyWordRequest KeyWordRequest_packet = new KeyWordRequest(toStringArray); // Construct the packet
-                Socket socket2 = Communication.connectAndSend(hosttt.getAddress(), hosttt.getPort(), KeyWordRequest_packet); // Send the packet
+                SSLSocket out = Communication.connectAndSend(hosttt.getAddress(), hosttt.getPort(), KeyWordRequest_packet); // Send the packet
 
                 break;
             //Exit
