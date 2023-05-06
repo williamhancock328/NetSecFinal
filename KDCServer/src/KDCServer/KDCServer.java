@@ -203,7 +203,7 @@ public class KDCServer {
                     EnrollRequest EnrollRequest_packet = (EnrollRequest) packet;
                     String user = EnrollRequest_packet.getUser();
                     String receivedNonceA = EnrollRequest_packet.getNonce();
-                    System.out.println(receivedNonceA);
+                    //.out.println(receivedNonceA);
                     byte[] nonceAToBytes = Base64.getDecoder().decode(receivedNonceA);
 
                     //Check if this is nonce we already recieved
@@ -247,7 +247,7 @@ public class KDCServer {
                 case SessionKeyRequest: {
                     SessionKeyRequest SessionKeyRequest_packet = (SessionKeyRequest) packet; //Receive packet containing username and service name
                     String receivedNonceC = SessionKeyRequest_packet.getNonce();
-                    System.out.println(receivedNonceC);
+                    //.out.println(receivedNonceC);
                     byte[] nonceCToBytes = Base64.getDecoder().decode(receivedNonceC);
 
                     if (!nc.containsNonce(nonceCToBytes)) {
@@ -258,7 +258,7 @@ public class KDCServer {
                         String svcpw = "";
                         for (Secrets secret : secrets) {
                             if (secret.getUser().equalsIgnoreCase(SessionKeyRequest_packet.getuName())) {
-                                System.out.println("Secret pw associated with user: " + secret.getUser());
+                                //.out.println("Secret pw associated with user: " + secret.getUser());
                                 pw = secret.getSecret();
                                 user = secret.getUser();
                                 sessionName = SessionKeyRequest_packet.getsName();
@@ -268,7 +268,7 @@ public class KDCServer {
                         }
                         for (Secrets secret : secrets) {
                             if (secret.getUser().equalsIgnoreCase(SessionKeyRequest_packet.getsName())) {
-                                System.out.println("Secret pw associated with user: " + secret.getUser());
+                                //.out.println("Secret pw associated with user: " + secret.getUser());
                                 svcpw = secret.getSecret();
                                 sessionName = SessionKeyRequest_packet.getsName();
                                 //sendSessionKey(user, sessionName, pw);

@@ -39,7 +39,7 @@ public class ClientSessionKeyDecryption {
 
         SecretKey sessKey2 = new SecretKeySpec(sessKey, 0 , sessKey.length, "AES");
         
-        System.out.println("client sess key 2: " + sessKey2);
+        //System.out.println("client sess key 2: " + sessKey2);
         // Setup the key.
         //SecretKeySpec aesKey = new SecretKeySpec(keyBytes, "AES");
         try {

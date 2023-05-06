@@ -29,11 +29,11 @@ public class EchoTktDecryption {
     
         public static byte[] decrypt(String ct, String IV, String uName, String mKey, long createTime, long valTime, String sessName) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException {
         //String masterPass = "";
-        System.out.println(mKey + valTime + createTime + uName + IV);
+        //System.out.println(mKey + valTime + createTime + uName + IV);
         int tagSize = 128; // 128-bit authentication tag.
         SecretKey key = scrypt.genKey(mKey, uName);
         //byte[] keyBytes = key.getEncoded();
-        System.out.println("SCRYPT DECRYPT: " + key);
+        //System.out.println("SCRYPT DECRYPT: " + key);
 
         // Set up an AES cipher object.
         Cipher aesCipher = Cipher.getInstance("AES/GCM/NoPadding");

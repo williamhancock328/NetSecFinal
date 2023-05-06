@@ -47,12 +47,12 @@ public class ServerMasterKeyEncryption {
 
         //generate the master key from the password.
         SecretKey mKey = scrypt.genKey(mkey, user);
-        System.out.println("SCRYPT ENCRYPT: " + mKey);
+        //.out.println("SCRYPT ENCRYPT: " + mKey);
         // Generate the IV.
         SecureRandom rand = new SecureRandom();
         byte[] rawIv = new byte[16];		// Block size of AES.
         rand.nextBytes(rawIv);					// Fill the array with random bytes.
-        System.out.println(mkey+valTime+createTime+uName+Base64.getEncoder().encodeToString(rawIv));
+        //.out.println(mkey+valTime+createTime+uName+Base64.getEncoder().encodeToString(rawIv));
         GCMParameterSpec gcmParams = new GCMParameterSpec(tagSize, rawIv);
 
         // Put the cipher in encrypt mode with the specified key.

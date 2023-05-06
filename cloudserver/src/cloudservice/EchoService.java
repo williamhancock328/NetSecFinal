@@ -90,7 +90,7 @@ public class EchoService {
                     // Set the protocol to 1.3
                     server.setEnabledProtocols(new String[]{"TLSv1.3"});
                     // Create the server
-                    System.out.println("running on port " + config.getPort());
+                    //.out.println("running on port " + config.getPort());
                     // Poll for input
                     while (poll() != true) {
 
@@ -162,7 +162,7 @@ public class EchoService {
                     // Perform decryption with info from tkt, this gives us the session key
                     serverSidesessionKey = EchoTktDecryption.decrypt(ticket.geteSKey(), ticket.getIv(), serviceName, serviceSecret, ticket.getCreateTime(), ticket.getValidityTime(), ticket.getsName());
 
-                    System.out.println("EchoService session key: " + Base64.getEncoder().encodeToString(serverSidesessionKey));
+                    //.out.println("EchoService session key: " + Base64.getEncoder().encodeToString(serverSidesessionKey));
 
                     // Fresh nonce S
                     byte[] nonceSBytes = nc.getNonce();
@@ -170,11 +170,11 @@ public class EchoService {
 
                     // Encrypt nonce C 
                     byte[] EncNonceC = EchoSessionKeyEncryption.encrypt(serverSidesessionKey, bytesUsedNonceC, ticket.getValidityTime(), ticket.getCreateTime(), serviceName, ticket.getsName());
-                    System.out.println(nonceSString);
-                    System.out.println("ct: " + Base64.getEncoder().encodeToString(EncNonceC));
-                    System.out.println("iv: " + Base64.getEncoder().encodeToString(EchoSessionKeyEncryption.getRawIv()));
-                    System.out.println("session name : " + serviceName);
-                    System.out.println("session key: " + Base64.getEncoder().encodeToString(serverSidesessionKey));
+                    //System.out.println(nonceSString);
+                    //System.out.println("ct: " + Base64.getEncoder().encodeToString(EncNonceC));
+                    //System.out.println("iv: " + Base64.getEncoder().encodeToString(EchoSessionKeyEncryption.getRawIv()));
+                    //System.out.println("session name : " + serviceName);
+                    //System.out.println("session key: " + Base64.getEncoder().encodeToString(serverSidesessionKey));
                     // Create the packet and send
                     ServerHello ServerHello_packet = new ServerHello(nonceSString, serviceName, Base64.getEncoder().encodeToString(EchoSessionKeyEncryption.getRawIv()), Base64.getEncoder().encodeToString(EncNonceC));
                     Communication.send(peer, ServerHello_packet);
@@ -187,9 +187,9 @@ public class EchoService {
 
                     //check nonce S is same
                     byte[] receivedNonceS = EchoSessionKeyDecryption.decrypt(ClientResponse_packet.geteSKey(), ClientResponse_packet.getIv(), ClientResponse_packet.getcName(), serverSidesessionKey);
-                    System.out.println(Base64.getEncoder().encodeToString(receivedNonceS));
+                    //System.out.println(Base64.getEncoder().encodeToString(receivedNonceS));
                     if (nc.containsNonce(receivedNonceS)) {
-                        System.out.println("Nonce matched");
+                        //System.out.println("Nonce matched");
                         handshakeStatus = true; // set status true
                         // Create packet containing status
                         HandshakeStatus handshakeStatus_packet = new HandshakeStatus(handshakeStatus);
@@ -213,34 +213,23 @@ public class EchoService {
                     String ctKeywords = KeyWordSend_packet.getKeyWords();
                     String iv = KeyWordSend_packet.getIv();
                     String iv2 = KeyWordSend_packet.getIv2();
-                    
-                    System.out.println("Server side enc. keywords:" + ctKeywords);
-                    System.out.println("key word iv: " + iv);
-                    
-                    System.out.println("Server side enc. nonce:" + ct_stringNonceD);                    
+
+                    //System.out.println("Server side enc. keywords:" + ctKeywords);
+                    //System.out.println("key word iv: " + iv);
+                    //System.out.println("Server side enc. nonce:" + ct_stringNonceD);
                     //byte[] nonce = EchoSessionKeyDecryption.decrypt(ct_stringNonceD, iv, user, serverSidesessionKey);
-                   
-                    System.out.println("");
-                     System.out.println("");
-                      System.out.println("");
-                       System.out.println("");
-                        System.out.println("");
-                         System.out.println("");
-                          System.out.println("");
-                       
-                    
                     byte[] byteKeywords = EchoSessionKeyDecryption.decrypt(ctKeywords, iv, user, serverSidesessionKey);
                     //String decrypted_keywords = Base64.getEncoder().encodeToString(byteKeywords);
                     //byte[] decodedBytes = Base64.getDecoder().decode(encoded);
                     String decodedString = new String(byteKeywords);
-                    
+
                     System.out.println("Decryped keywords!!! ->" + decodedString);
                     //System.out.println("iv2 ->" + KeyWordSend_packet.getIv2());
-                    
+
                     byte[] byteNonceD = EchoSessionKeyDecryption.decrypt(ct_stringNonceD, iv2, user, serverSidesessionKey);
                     String ptNonce = Base64.getEncoder().encodeToString(byteNonceD);
                     System.out.println("Decrypted nonce -> " + ptNonce);
-                    
+
                     //byte[] byteNonceD = Base64.getDecoder().decode(ct_stringNonceD);
                     if (!nc.containsNonce(byteNonceD)) {
 
@@ -267,34 +256,23 @@ public class EchoService {
                     String ctKeywords = KeyWordRequest_packet.getKeyWords();
                     String iv = KeyWordRequest_packet.getIv();
                     String iv2 = KeyWordRequest_packet.getIv2();
-                    
-                    System.out.println("Server side enc. keywords:" + ctKeywords);
-                    System.out.println("key word iv: " + iv);
-                    
-                    System.out.println("Server side enc. nonce:" + ct_stringNonceD);                    
+
+                    //System.out.println("Server side enc. keywords:" + ctKeywords);
+                    //System.out.println("key word iv: " + iv);
+                    //System.out.println("Server side enc. nonce:" + ct_stringNonceD);
                     //byte[] nonce = EchoSessionKeyDecryption.decrypt(ct_stringNonceD, iv, user, serverSidesessionKey);
-                   
-                    System.out.println("");
-                     System.out.println("");
-                      System.out.println("");
-                       System.out.println("");
-                        System.out.println("");
-                         System.out.println("");
-                          System.out.println("");
-                       
-                    
                     byte[] byteKeywords = EchoSessionKeyDecryption.decrypt(ctKeywords, iv, user, serverSidesessionKey);
                     //String decrypted_keywords = Base64.getEncoder().encodeToString(byteKeywords);
                     //byte[] decodedBytes = Base64.getDecoder().decode(encoded);
                     String decodedString = new String(byteKeywords);
-                    
+
                     System.out.println("Decryped keywords!!! ->" + decodedString);
                     //System.out.println("iv2 ->" + KeyWordSend_packet.getIv2());
-                    
+
                     byte[] byteNonceD = EchoSessionKeyDecryption.decrypt(ct_stringNonceD, iv2, user, serverSidesessionKey);
                     String ptNonce = Base64.getEncoder().encodeToString(byteNonceD);
                     System.out.println("Decrypted nonce -> " + ptNonce);
-                    
+
                     //byte[] byteNonceD = Base64.getDecoder().decode(ct_stringNonceD);
                     if (!nc.containsNonce(byteNonceD)) {
 

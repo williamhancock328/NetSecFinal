@@ -37,7 +37,7 @@ public class EchoSessionKeyDecComm {
 
         SecretKey sessKey2 = new SecretKeySpec(sessKey, 0, sessKey.length, "AES");
         String encodedKey = Base64.getEncoder().encodeToString(sessKey2.getEncoded());
-        System.out.println("echo sess key 2: " + sessKey2);
+        //System.out.println("echo sess key 2: " + sessKey2);
         // Setup the key.
         //SecretKeySpec aesKey = new SecretKeySpec(keyBytes, "AES");
         try {
