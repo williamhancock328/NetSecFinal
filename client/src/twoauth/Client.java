@@ -124,7 +124,14 @@ public class Client {
      * @throws IOException
      */
     private static void create(String host, String pass, int port, String user) throws IOException, NoSuchMethodException {
-        EnrollRequest send = new EnrollRequest(user, pass);
+        // Get fresh nonce A
+        byte[] nonceABytes = nc.getNonce();
+        //Add nonceA to nonce cache
+        nc.addNonce(nonceABytes);
+        // Convert nonceABytes to Base64 string format
+        String nonceA = Base64.getEncoder().encodeToString(nonceABytes);
+        
+        EnrollRequest send = new EnrollRequest(user, pass, nonceA);
         SSLSocket out = Communication.connectAndSend(host, port, send);
         final Packet packet = Communication.read(out);
         ServerResponse ServerResponse_packet = (ServerResponse) packet;
@@ -145,7 +152,14 @@ public class Client {
      * @throws IOException
      */
     private static boolean auth(String host, String pass, int port, String user, int otp) throws IOException, NoSuchMethodException {
-        AuthRequest send = new AuthRequest(user, pass, otp);
+        // Get fresh nonce B
+        byte[] nonceBBytes = nc.getNonce();
+        //Add nonceA to nonce cache
+        nc.addNonce(nonceBBytes);
+        // Convert nonceABytes to Base64 string format
+        String nonceB = Base64.getEncoder().encodeToString(nonceBBytes);
+        
+        AuthRequest send = new AuthRequest(user, pass, otp, nonceB);
         SSLSocket out = Communication.connectAndSend(host, port, send);
         final Packet packet = Communication.read(out);
         ServerResponse ServerResponse_packet = (ServerResponse) packet;
