@@ -105,7 +105,7 @@ public class Server {
                         EnrollRequest EnrollRequest_packet = (EnrollRequest) packet;
                         String user = EnrollRequest_packet.getUser();
                         if (v.GetPW(user) != null) {
-                            ServerResponse eresp = new ServerResponse(false, "User already exists.");
+                            ServerResponse eresp = new ServerResponse(false, "User already exists.", "");
                             send(eresp, sock);
                             break;
                         }
@@ -122,7 +122,7 @@ public class Server {
                         v.AddPW(salt, phash, totpkey, user);
                         //save the vault
                         v.SaveJSON();
-                        ServerResponse res = new ServerResponse(true, Base32.encodeToString(totpbytes, true));
+                        ServerResponse res = new ServerResponse(true, Base32.encodeToString(totpbytes, true),"");
                         send(res, sock);
                         break;
 
@@ -137,19 +137,19 @@ public class Server {
                         String hashToCheck = scrypt.checkPw(pw, Base64.getDecoder().decode(vaultEnt.getSalt()));
                         if (hashToCheck.equals(vaultEnt.getPass())) {
                         } else {
-                            ServerResponse authres = new ServerResponse(false, "Authentication failed.");
+                            ServerResponse authres = new ServerResponse(false, "Authentication failed.","");
                             send(authres, sock);
                             break;
                         }
                         //totp
                         totp t = new totp(vaultEnt.getTotpkey(), otp);
                         if (t.CheckOtp()) {
-                            ServerResponse authres = new ServerResponse(true, "");
+                            ServerResponse authres = new ServerResponse(true, "","");
                             send(authres, sock);
                             //authorization is successful
                             break;
                         } else {
-                            ServerResponse authres = new ServerResponse(false, "Authentication failed.");
+                            ServerResponse authres = new ServerResponse(false, "Authentication failed.","");
                             send(authres, sock);
                             break;
                         }

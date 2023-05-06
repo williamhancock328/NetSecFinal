@@ -172,19 +172,20 @@ public class KDCServer {
                         String hashToCheck = scrypt.checkPw(pw, Base64.getDecoder().decode(vaultEnt.getSalt()));
                         if (hashToCheck.equals(vaultEnt.getPass())) {
                         } else {
-                            ServerResponse authres = new ServerResponse(false, "Authentication failed.");
+                            ServerResponse authres = new ServerResponse(false, "Authentication failed.", "");
                             Communication.send(peer, authres);
                             break;
                         }
                         //totp
                         totp t = new totp(vaultEnt.getTotpkey(), otp);
                         if (t.CheckOtp()) {
-                            ServerResponse authres = new ServerResponse(true, "");
+                            String toStringNonceB = Base64.getEncoder().encodeToString(nonceBToBytes);
+                            ServerResponse authres = new ServerResponse(true, "", toStringNonceB);
                             Communication.send(peer, authres);
                             //authorization is successful
                             break;
                         } else {
-                            ServerResponse authres = new ServerResponse(false, "Authentication failed.");
+                            ServerResponse authres = new ServerResponse(false, "Authentication failed.", "");
                             Communication.send(peer, authres);
                             break;
                         }
@@ -208,11 +209,14 @@ public class KDCServer {
                         //Add received nonce to nonce cache
                         nc.addNonce(nonceAToBytes);
 
+                        String toStringNonceA = Base64.getEncoder().encodeToString(nonceAToBytes);
+                        
                         if (v.GetPW(user) != null) {
-                            ServerResponse eresp = new ServerResponse(false, "User already exists.");
+                            ServerResponse eresp = new ServerResponse(false, "User already exists.", "");
                             Communication.send(peer, eresp);
                             break;
-                        }
+                        }                        
+                        
                         // Construct an key for the HMAC.
                         KeyGenerator hmacKeyGen = KeyGenerator.getInstance("HmacSHA1");
                         SecretKey key = hmacKeyGen.generateKey();
@@ -226,7 +230,7 @@ public class KDCServer {
                         v.AddPW(salt, phash, totpkey, user);
                         //save the vault
                         v.SaveJSON();
-                        ServerResponse res = new ServerResponse(true, Base32.encodeToString(totpbytes, true));
+                        ServerResponse res = new ServerResponse(true, Base32.encodeToString(totpbytes, true), toStringNonceA);
                         Communication.send(peer, res);
                         break;
 
@@ -238,35 +242,45 @@ public class KDCServer {
                 }
 
                 case SessionKeyRequest: {
-                    //String pw2 = "";
                     SessionKeyRequest SessionKeyRequest_packet = (SessionKeyRequest) packet; //Receive packet containing username and service name
-                    String sessionName = "";
-                    String user = "";
-                    String pw = "";
-                    String svcpw = "";
-                    for (Secrets secret : secrets) {
-                        if (secret.getUser().equalsIgnoreCase(SessionKeyRequest_packet.getuName())) {
-                            System.out.println("Secret pw associated with user: " + secret.getUser());
-                            pw = secret.getSecret();
-                            user = secret.getUser();
-                            sessionName = SessionKeyRequest_packet.getsName();
-                            //sendSessionKey(user, sessionName, pw);
-                            break;
-                        }
-                    }
-                    for (Secrets secret : secrets) {
-                        if (secret.getUser().equalsIgnoreCase(SessionKeyRequest_packet.getsName())) {
-                            System.out.println("Secret pw associated with user: " + secret.getUser());
-                            svcpw = secret.getSecret();
-                            sessionName = SessionKeyRequest_packet.getsName();
-                            //sendSessionKey(user, sessionName, pw);
-                            break;
-                        }
-                    }
+                    String receivedNonceC = SessionKeyRequest_packet.getNonce();
+                    System.out.println(receivedNonceC);
+                    byte[] nonceCToBytes = Base64.getDecoder().decode(receivedNonceC);
 
-                    //SessionKeyResponse chapStatus_packet = new SessionKeyResponse(sendSessionKey(user, sessionName, pw));
-                    Communication.send(peer, sendSessionKey(user, sessionName, pw, svcpw));
+                    if (!nc.containsNonce(nonceCToBytes)) {
+                        String sessionName = "";
+                        String user = "";
+                        String pw = "";
+                        String svcpw = "";
+                        for (Secrets secret : secrets) {
+                            if (secret.getUser().equalsIgnoreCase(SessionKeyRequest_packet.getuName())) {
+                                System.out.println("Secret pw associated with user: " + secret.getUser());
+                                pw = secret.getSecret();
+                                user = secret.getUser();
+                                sessionName = SessionKeyRequest_packet.getsName();
+                                //sendSessionKey(user, sessionName, pw);
+                                break;
+                            }
+                        }
+                        for (Secrets secret : secrets) {
+                            if (secret.getUser().equalsIgnoreCase(SessionKeyRequest_packet.getsName())) {
+                                System.out.println("Secret pw associated with user: " + secret.getUser());
+                                svcpw = secret.getSecret();
+                                sessionName = SessionKeyRequest_packet.getsName();
+                                //sendSessionKey(user, sessionName, pw);
+                                break;
+                            }
+
+                        }
+
+                        //SessionKeyResponse chapStatus_packet = new SessionKeyResponse(sendSessionKey(user, sessionName, pw));
+                        Communication.send(peer, sendSessionKey(user, sessionName, pw, svcpw));
+                    } else {
+                        System.out.println("Replay attack detected");
+                        System.exit(0);
+                    }
                 }
+
                 ;
                 break;
 

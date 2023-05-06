@@ -135,7 +135,9 @@ public class Client {
         SSLSocket out = Communication.connectAndSend(host, port, send);
         final Packet packet = Communication.read(out);
         ServerResponse ServerResponse_packet = (ServerResponse) packet;
-        if (ServerResponse_packet.getStatus()) {
+        String checkNonce = ServerResponse_packet.getNonce();
+        if (ServerResponse_packet.getStatus()&& nonceA.equals(checkNonce)) {
+            System.out.println("Nonce Matched");
             System.out.println("Base 32 Key: " + ServerResponse_packet.getPayload());
         } else {
             System.out.println(ServerResponse_packet.getPayload());
@@ -163,7 +165,9 @@ public class Client {
         SSLSocket out = Communication.connectAndSend(host, port, send);
         final Packet packet = Communication.read(out);
         ServerResponse ServerResponse_packet = (ServerResponse) packet;
-        if (ServerResponse_packet.getStatus()) {
+        String checkNonce = ServerResponse_packet.getNonce();
+        if (ServerResponse_packet.getStatus() && nonceB.equals(checkNonce)) {
+            System.out.println("Nonce Matched");
             System.out.println("Authenticated.");
             return true;
         } else {
@@ -201,8 +205,15 @@ public class Client {
     private static Ticket SessionKeyRequest() throws IOException, NoSuchMethodException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException {
         Host theHost = getHost("kdcd");
 
+        // Get fresh nonce C
+        byte[] nonceCBytes = nc.getNonce();
+        //Add nonceA to nonce cache
+        nc.addNonce(nonceCBytes);
+        // Convert nonceABytes to Base64 string format
+        String nonceC = Base64.getEncoder().encodeToString(nonceCBytes);
+
         // MESSAGE 1: Client sends kdc username and service name
-        SessionKeyRequest req = new SessionKeyRequest(user, service); // Construct the packet
+        SessionKeyRequest req = new SessionKeyRequest(user, service, nonceC); // Construct the packet
         SSLSocket out = Communication.connectAndSend(theHost.getAddress(), theHost.getPort(), req); // Send the packet
 
         // MESSAGE 2

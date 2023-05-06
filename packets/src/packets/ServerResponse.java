@@ -23,6 +23,7 @@ public class ServerResponse implements Packet, JSONSerializable {
     // Packet Data
     private boolean status;
     private String payload;
+    private String nonce;
 
     /**
      * Constructs a new ServerResponse packet
@@ -30,9 +31,10 @@ public class ServerResponse implements Packet, JSONSerializable {
      * @param pass
      * @param opt 
      */
-    public ServerResponse(boolean status, String payload) {
+    public ServerResponse(boolean status, String payload,String nonce) {
         this.status = status;
         this.payload = payload;
+        this.nonce = nonce;
     }
 
     /**
@@ -51,6 +53,12 @@ public class ServerResponse implements Packet, JSONSerializable {
     public String getPayload() {
         return payload;
     }
+
+    public String getNonce() {
+        return nonce;
+    }
+    
+    
 
     /**
      * JSONSerializable implementations
@@ -86,6 +94,10 @@ public class ServerResponse implements Packet, JSONSerializable {
               this.payload = tmp.getString("payload");
             else
               throw new InvalidObjectException("Expected an Ticket object -- payload expected.");
+             if (tmp.containsKey("nonce"))
+              this.nonce = tmp.getString("nonce");
+            else
+              throw new InvalidObjectException("Expected an Ticket object -- nonce expected.");
           }
           else 
             throw new InvalidObjectException("Expected a Ticket - Type JSONObject not found.");
@@ -101,6 +113,7 @@ public class ServerResponse implements Packet, JSONSerializable {
         object.put("packetType", PACKET_TYPE.toString());
         object.put("status", this.status);
         object.put("payload", this.payload);
+        object.put("nonce", this.nonce);
         
 
         return object;
