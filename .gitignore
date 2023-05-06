@@ -22,3 +22,8 @@ cloudserver/nbproject/private/private.properties
 /KDCServer/build/
 /KDCServer/dist/
 /KDCServer/nbproject/private/
+/EchoService/build/
+/EchoService/dist/
+/EchoService/nbproject/private/
+/SSE/build/
+/SSE/dist/

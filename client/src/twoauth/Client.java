@@ -36,7 +36,7 @@ public class Client {
 
     public static ArrayList<Host> hosts = new ArrayList<>();
     private static Config config;
-    private static String host;
+    private static String host = "hosts.json";
     private static String port;
     private static String pass;
     private static String user;
@@ -54,34 +54,31 @@ public class Client {
     public static void main(String[] args) throws IOException, NoSuchMethodException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
         //print a welcome message then a menu with the options to create a user, download a file, upload a file, manage tags, and search for files by tag
         System.out.println("Welcome to the File Sharing System!");
-        System.out.println("Please enter the hosts file name.");
-        Console console = System.console();
+        //Console console = System.console();
         Scanner scanner = new Scanner(System.in);
-        host = scanner.nextLine();
-        System.out.println("Please enter the port you would like to connect to: ");
-        port = scanner.nextLine();
+        config = new Config(host);
         System.out.println("Login Menu:");
         System.out.println("1. Create a new user");
         System.out.println("2. Login as an existing user");
         System.out.println("3. Exit");
+        Host hosts = getHost("kdcd");
         Scanner scanner2 = new Scanner(System.in);
         int input = scanner2.nextInt();
         switch(input){
             case 1:
                 System.out.println("Please enter the username you would like to use: ");
                 String newuser = scanner.nextLine();
-                String newpass = new String(console.readPassword("Enter password:"));
-                create(host, newpass, port, newuser);
+                //String newpass = new String(console.readPassword("Enter password:"));
+                //create(host, newpass, hosts.getPort(), newuser);
                 break;
             case 2:
                 System.out.println("Please enter your username: ");
                 user = scanner.nextLine();
-                pass = new String(console.readPassword("Enter password:"));
+                pass = "jack";
                 System.out.println("Please enter your one time password: ");
                 int otp = scanner.nextInt();
-                if(auth(user, pass, port, user, otp)){
+                if(auth(user, pass, hosts.getPort(), user, otp)){
                     System.out.println("");
-                    config = new Config(host);
                     Ticket tik = SessionKeyRequest();
                     System.out.println("Now we have the ticket.");
                     Handshake(tik);
@@ -107,9 +104,9 @@ public class Client {
      * @param user The username of the user.
      * @throws IOException
      */
-    private static void create(String host, String pass, String port, String user) throws IOException, NoSuchMethodException {
+    private static void create(String host, String pass, int port, String user) throws IOException, NoSuchMethodException {
         EnrollRequest send = new EnrollRequest(user, pass);
-        SSLSocket out = Communication.connectAndSend(host, Integer.parseInt(port), send);
+        SSLSocket out = Communication.connectAndSend(host, port, send);
         final Packet packet = Communication.read(out);
         ServerResponse ServerResponse_packet = (ServerResponse) packet;
         if (ServerResponse_packet.getStatus()) {
@@ -128,9 +125,9 @@ public class Client {
      * @param otp The one time password of the user.
      * @throws IOException
      */
-    private static boolean auth(String host, String pass, String port, String user, int otp) throws IOException, NoSuchMethodException {
+    private static boolean auth(String host, String pass, int port, String user, int otp) throws IOException, NoSuchMethodException {
         AuthRequest send = new AuthRequest(user, pass, otp);
-        SSLSocket out = Communication.connectAndSend(host, Integer.parseInt(port), send);
+        SSLSocket out = Communication.connectAndSend(host, port, send);
         final Packet packet = Communication.read(out);
         ServerResponse ServerResponse_packet = (ServerResponse) packet;
         if (ServerResponse_packet.getStatus()) {
@@ -181,14 +178,14 @@ public class Client {
 
         sessionKeyClient = ClientMasterKeyDecryption.decrypt(sessKeyResp_Packet.geteSKeyAlice(), sessKeyResp_Packet.getuIv(), user, pass, sessKeyResp_Packet.getCreateTime(), sessKeyResp_Packet.getValidityTime(), sessKeyResp_Packet.getsName());
         System.out.println("Client session key: " + Arrays.toString(sessionKeyClient));
-
+        socket.close();
         //send a ticket
         return new Ticket(sessKeyResp_Packet.getCreateTime(), sessKeyResp_Packet.getValidityTime(), sessKeyResp_Packet.getuName(), sessKeyResp_Packet.getsName(), sessKeyResp_Packet.getIv(), sessKeyResp_Packet.geteSKey());
     }
 
     private static boolean Handshake(Ticket in) throws IOException, NoSuchMethodException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
         //Client connects to echoservice
-        Host host = getHost("echoservice");
+        Host host = getHost("cloudservice");
         System.out.println("GOT TO ECHOSERVICE");
         // Get fresh nonce C
         byte[] nonceCBytes = nc.getNonce();
@@ -200,6 +197,7 @@ public class Client {
 
         // MESSAGE 1: Client sends echoservice the nonce C and ticket
         ClientHello hi = new ClientHello(nonceC, tkt); // Construct the packet
+        System.out.println(host.getAddress() + host.getPort());
         Socket socket = Communication.connectAndSend(host.getAddress(), host.getPort(), hi); // Send the packet
 
         //MESSAGE 3: Recieved the server hello
@@ -209,7 +207,7 @@ public class Client {
         System.out.println("iv: " + ServerHello_Packet.getIv());
         System.out.println("user: " + user);
         System.out.println("session name : " + ServerHello_Packet.getsName());    
-         System.out.println("session key: " + Base64.getEncoder().encodeToString(sessionKeyClient));
+        System.out.println("session key: " + Base64.getEncoder().encodeToString(sessionKeyClient));
         //Decrypt nonce c
         byte[] checkNonceCBytes = ClientSessionKeyDecryption.decrypt(ServerHello_Packet.geteSKey(), ServerHello_Packet.getIv(), user, sessionKeyClient, ServerHello_Packet.getsName());
         if (Arrays.equals(checkNonceCBytes, nonceCBytes)) {

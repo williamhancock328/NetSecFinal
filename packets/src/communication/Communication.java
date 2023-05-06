@@ -98,7 +98,6 @@ public class Communication {
 
         // Input from peer
         String line = br.readLine(); // Blocking call, will not run anything until this finished on thread.
-
         // Determine the type of packet.
         JSONObject object = JsonIO.readObject(line); // All packets are type JSON object with identifier "packetType"
         String identifier = object.getString("packetType");

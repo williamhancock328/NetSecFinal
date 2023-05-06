@@ -1,4 +1,4 @@
-package config;
+package cloudservice.config;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -12,7 +12,7 @@ import merrimackutil.json.types.JSONType;
  * Class that loads the configuration file for the authentication server.
  * @author William
  */
-public class Config implements JSONSerializable {
+public class SSLConfig implements JSONSerializable {
     
     private String path;
     
@@ -27,7 +27,7 @@ public class Config implements JSONSerializable {
      * @throws FileNotFoundException
      * @throws InvalidObjectException 
      */
-    public Config(String path) throws FileNotFoundException, InvalidObjectException {
+    public SSLConfig(String path) throws FileNotFoundException, InvalidObjectException {
         this.path = path;
         
         // Construct file

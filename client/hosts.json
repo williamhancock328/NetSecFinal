@@ -6,7 +6,7 @@
       "port" : 5000
     },
     {
-      "host-name" : "echoservice",
+      "host-name" : "cloudservice",
       "address" : "127.0.0.1",
       "port" : 5001
     }
