@@ -54,7 +54,7 @@ public class Client {
     public static void main(String[] args) throws IOException, NoSuchMethodException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
         //print a welcome message then a menu with the options to create a user, download a file, upload a file, manage tags, and search for files by tag
         System.out.println("Welcome to the File Sharing System!");
-        //Console console = System.console();
+        Console console = System.console();
         Scanner scanner = new Scanner(System.in);
         config = new Config(host);
         System.out.println("Login Menu:");
@@ -68,13 +68,13 @@ public class Client {
             case 1:
                 System.out.println("Please enter the username you would like to use: ");
                 String newuser = scanner.nextLine();
-                //String newpass = new String(console.readPassword("Enter password:"));
-                //create(host, newpass, hosts.getPort(), newuser);
+                String newpass = new String(console.readPassword("Enter password:"));
+                create(host, newpass, hosts.getPort(), newuser);
                 break;
             case 2:
                 System.out.println("Please enter your username: ");
                 user = scanner.nextLine();
-                pass = "jack";
+                pass = new String(console.readPassword("Enter password:"));
                 System.out.println("Please enter your one time password: ");
                 int otp = scanner.nextInt();
                 if(auth(user, pass, hosts.getPort(), user, otp)){
