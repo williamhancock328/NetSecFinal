@@ -262,16 +262,49 @@ public class EchoService {
                 //Cloud server receives key words to search new file
                 case KeyWordRequest: {
                     KeyWordRequest KeyWordRequest_packet = (KeyWordRequest) packet;
-                    String stringNonceE = KeyWordRequest_packet.getNonce();
-                    byte[] byteNonceE = Base64.getDecoder().decode(stringNonceE);
-                    if (!nc.containsNonce(byteNonceE)) {
+                    String ct_stringNonceD = KeyWordRequest_packet.getNonce();
+                    String user = KeyWordRequest_packet.getUser();
+                    String ctKeywords = KeyWordRequest_packet.getKeyWords();
+                    String iv = KeyWordRequest_packet.getIv();
+                    String iv2 = KeyWordRequest_packet.getIv2();
+                    
+                    System.out.println("Server side enc. keywords:" + ctKeywords);
+                    System.out.println("key word iv: " + iv);
+                    
+                    System.out.println("Server side enc. nonce:" + ct_stringNonceD);                    
+                    //byte[] nonce = EchoSessionKeyDecryption.decrypt(ct_stringNonceD, iv, user, serverSidesessionKey);
+                   
+                    System.out.println("");
+                     System.out.println("");
+                      System.out.println("");
+                       System.out.println("");
+                        System.out.println("");
+                         System.out.println("");
+                          System.out.println("");
+                       
+                    
+                    byte[] byteKeywords = EchoSessionKeyDecryption.decrypt(ctKeywords, iv, user, serverSidesessionKey);
+                    //String decrypted_keywords = Base64.getEncoder().encodeToString(byteKeywords);
+                    //byte[] decodedBytes = Base64.getDecoder().decode(encoded);
+                    String decodedString = new String(byteKeywords);
+                    
+                    System.out.println("Decryped keywords!!! ->" + decodedString);
+                    //System.out.println("iv2 ->" + KeyWordSend_packet.getIv2());
+                    
+                    byte[] byteNonceD = EchoSessionKeyDecryption.decrypt(ct_stringNonceD, iv2, user, serverSidesessionKey);
+                    String ptNonce = Base64.getEncoder().encodeToString(byteNonceD);
+                    System.out.println("Decrypted nonce -> " + ptNonce);
+                    
+                    //byte[] byteNonceD = Base64.getDecoder().decode(ct_stringNonceD);
+                    if (!nc.containsNonce(byteNonceD)) {
 
-                        nc.addNonce(byteNonceE);
+                        nc.addNonce(byteNonceD);
 
                         String keyWords = KeyWordRequest_packet.getKeyWords();
                         String[] arr = keyWords.split(",");
                         ArrayList<String> list = new ArrayList<>(Arrays.asList(arr));
                         System.out.println(list);
+
                     } else {
                         System.out.println("Replay attack detected");
                         System.exit(0);

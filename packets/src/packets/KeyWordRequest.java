@@ -20,15 +20,20 @@ public class KeyWordRequest implements Packet, JSONSerializable {
     // Packet Data
     private String keyWords;
     private String nonce;
-
+    private String iv;
+    private String user;
+    private String iv2;
     /**
      * Constructs a new EnrollRequest packet
      *
      * @param keyWords
      */
-    public KeyWordRequest(String keyWords, String nonce) {
+    public KeyWordRequest(String keyWords, String nonce,String iv, String user, String iv2) {
         this.keyWords = keyWords;
         this.nonce = nonce;
+        this.iv = iv;
+        this.user = user;
+        this.iv2 = iv2;
     }
 
     public String getKeyWords() {
@@ -39,6 +44,19 @@ public class KeyWordRequest implements Packet, JSONSerializable {
         return nonce;
     }
 
+    public String getIv() {
+        return iv;
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public String getIv2() {
+        return iv2;
+    }
+
+    
     /**
      * Converts a JSONObject into a ticket object
      *
@@ -86,6 +104,21 @@ public class KeyWordRequest implements Packet, JSONSerializable {
             } else {
                 throw new InvalidObjectException("Expected a object -- nonce expected.");
             }
+            if (tmp.containsKey("iv")) {
+                this.iv = tmp.getString("iv");
+            } else {
+                throw new InvalidObjectException("Expected a object -- iv expected.");
+            }
+            if (tmp.containsKey("user")) {
+                this.user = tmp.getString("user");
+            } else {
+                throw new InvalidObjectException("Expected a object -- user expected.");
+            }
+            if (tmp.containsKey("iv2")) {
+                this.iv2 = tmp.getString("iv2");
+            } else {
+                throw new InvalidObjectException("Expected a object -- iv2 expected.");
+            }
         } else {
             throw new InvalidObjectException("Expected a Ticket - Type JSONObject not found.");
         }
@@ -102,6 +135,9 @@ public class KeyWordRequest implements Packet, JSONSerializable {
         object.put("packetType", PACKET_TYPE.toString());
         object.put("keyWords", this.keyWords);
         object.put("nonce", this.nonce);
+        object.put("iv", this.iv);
+        object.put("user", this.user);
+        object.put("iv2", this.iv2);
 
         return object;
     }
