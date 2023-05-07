@@ -4,6 +4,7 @@ package sse;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import sse.files.Entry;
 
@@ -104,6 +105,15 @@ public class DocumentCollection {
         return entries;
     }
      
+    /**
+     * Searches for an EncryptedDocument based on it's uuid
+     * @param uuid
+     * @return 
+     */
+    public EncryptedDocument Search(UUID uuid) {
+        String ID = uuid.toString();
+        return index_table.values().stream().filter(n -> n.getID().equalsIgnoreCase(ID)).findFirst().orElse(null);
+    }
     
     
 }

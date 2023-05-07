@@ -6,6 +6,7 @@ import java.io.InvalidObjectException;
 import java.security.Key;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.crypto.SecretKey;
@@ -59,6 +60,15 @@ public class SSE {
         return docCollection.Insert(tks, doc);
     }
 
+    /**
+     * Searches for an EncryptedDocument based on it's uuid
+     * @param uuid
+     * @return 
+     */
+    public EncryptedDocument Search(UUID uuid) {
+        return docCollection.Search(uuid); // Finds the EncryptedDocument
+    }
+    
    // public Token DeleteToken(Key secretKey, int id) {
    //     return null;
    // }
