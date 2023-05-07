@@ -30,6 +30,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import merrimackutil.util.NonceCache;
 import merrimackutil.util.Tuple;
+import packets.abstractpk.SessionKeyPackets;
 import packets.filepack.FileCreate;
 import packets.filepack.FileReceived;
 import packets.filepack.FileSend;
@@ -404,7 +405,22 @@ public class Client {
                     
                     // 5. Consrtuct & Send the FileCreate Packet
                     FileCreate fileCreate = new FileCreate(encrypted_filename, usersList, tokens_strings);
-                    SSLSocket out = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), fileCreate); // Send the packet
+                    
+                    // Encode keywords
+                    String encoded = Base64.getEncoder().encodeToString(fileCreate.toString().getBytes());                    
+                    byte[] bytePacket = Base64.getDecoder().decode(encoded);
+                    
+                    //Encrypt file create with session key here
+                    byte[] encPacket = ClientSessionKeyEncryption.encrypt(sessionKeyClient, bytePacket, user, service);
+                    String StringEncPacket = Base64.getEncoder().encodeToString(encPacket);
+                    byte[] rawIV = ClientSessionKeyEncryption.getRawIv();
+                    String StringRawIV = Base64.getEncoder().encodeToString(rawIV);
+                    byte[] EncNonce = ClientSessionKeyEncryption.encrypt(sessionKeyClient, nonceDBytes, user, service);
+                    String StringEncNonce = Base64.getEncoder().encodeToString(EncNonce);
+                    
+                    SessionKeyPackets SessionKeyPacket_packet = new SessionKeyPackets(StringRawIV, StringEncNonce, StringEncPacket);
+                    SSLSocket out = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), SessionKeyPacket_packet); // Send the packet
+                    
                     FileReceived fileReceived = (FileReceived) Communication.read(out); // Receive the fileReceived packet
                     
                     // 6. Initilialize the FileSend stream.
@@ -412,8 +428,22 @@ public class Client {
                     
                     for(int i = 0; i < fileSends.size(); i++) {
                         FileSend packet = fileSends.get(i); // Get the next packet
+                        
+                        // Encode keywords
+                        String encoded2 = Base64.getEncoder().encodeToString(packet.toString().getBytes());
+                        byte[] bytePacket2 = Base64.getDecoder().decode(encoded2);
+                        
+                        //Encrypt file create with session key here
+                        byte[] encPacket2 = ClientSessionKeyEncryption.encrypt(sessionKeyClient, bytePacket2, user, service);
+                        String StringEncPacket2 = Base64.getEncoder().encodeToString(encPacket2);
+                        byte[] rawIV2 = ClientSessionKeyEncryption.getRawIv();
+                        String StringRawIV2 = Base64.getEncoder().encodeToString(rawIV2);
+                        byte[] EncNonce2 = ClientSessionKeyEncryption.encrypt(sessionKeyClient, nonceDBytes, user, service);
+                        String StringEncNonce2 = Base64.getEncoder().encodeToString(EncNonce2);
                    
-                        SSLSocket send_out = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), packet); // Send the packet
+                        SessionKeyPackets SessionKeyPacket_packet2 = new SessionKeyPackets(StringRawIV2, StringEncNonce2, StringEncPacket2);
+                        
+                        SSLSocket send_out = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), SessionKeyPacket_packet2); // Send the packet
                         FileReceived send_fileReceived = (FileReceived) Communication.read(send_out); // Receive the fileReceived packet
                     }
                     
