@@ -10,7 +10,8 @@ import java.util.UUID;
  */
 public class EncryptedDocument {
     
-   private String ID; 
+   private String ID;
+   private String encrypted_filename;
    private String encoded_file;
    private List<String> users; // List of users who have access too the file (usernames)
    
@@ -18,9 +19,10 @@ public class EncryptedDocument {
     * Construction constructor
     * @param encoded_file 
     */
-   public EncryptedDocument(List<String> users) {
+   public EncryptedDocument(String encrypted_filename, List<String> users) {
        this.ID = UUID.randomUUID().toString();
-       //this.encoded_file = encoded_file;
+       this.encrypted_filename = encrypted_filename;
+       this.users = users;
    }
    
    /**
@@ -30,10 +32,11 @@ public class EncryptedDocument {
     * @param encoded_file
     * @param users 
     */
-   public EncryptedDocument(String ID, String encoded_file, List<String> users) {
+   public EncryptedDocument(String ID, String encrypted_filename, String encoded_file, List<String> users) {
        this.ID = ID;
        this.encoded_file = encoded_file;
        this.users = users;
+       this.encrypted_filename = encrypted_filename;
    }
 
 
@@ -78,6 +81,13 @@ public class EncryptedDocument {
      */
     public void setEncoded_file(String encoded_file) {
         this.encoded_file = encoded_file;
+    }
+
+    /**
+     * @return the encoded_filename
+     */
+    public String getEncrypted_filename() {
+        return encrypted_filename;
     }
 
 }

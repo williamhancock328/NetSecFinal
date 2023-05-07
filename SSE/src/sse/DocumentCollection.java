@@ -68,7 +68,7 @@ public class DocumentCollection {
         for(Entry n : entries) {
             
             // Load the document
-            EncryptedDocument document = new EncryptedDocument(n.getID(), n.getDocument(), n.getUsers());
+            EncryptedDocument document = new EncryptedDocument(n.getID(), n.getEncrypted_filename(), n.getDocument(), n.getUsers());
             
             // Construct the list of Tokens
             List<Token> tokens = n.getTokens().stream().map(s -> new Token(s)).collect(Collectors.toList());
@@ -98,7 +98,7 @@ public class DocumentCollection {
             List<String> tokens_mapped = key.stream().map(n -> n.toString()).collect(Collectors.toList());
             
             // Appends the entry to the list of returning entries
-            entries.add(new Entry(value.getID(), value.getEncoded_file(), tokens_mapped, value.getUsers()));
+            entries.add(new Entry(value.getID(), value.getEncrypted_filename(), value.getEncoded_file(), tokens_mapped, value.getUsers()));
         }
         
         return entries;

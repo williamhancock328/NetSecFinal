@@ -24,13 +24,15 @@ public class FileCreate implements Packet, JSONSerializable {
     private static final PacketType PACKET_TYPE = PacketType.FileCreate;
     
     // Packet Data
+    private String encrypted_filename;
     private List<String> users;
     private List<String> tokens;
 
     /**
      * Constructs a new FileCreate packet
      */
-    public FileCreate(List<String> users, List<String> tokens) {
+    public FileCreate(String encrypted_filename, List<String> users, List<String> tokens) {
+        this.encrypted_filename = encrypted_filename;
         this.users = users;
         this.tokens = tokens;
     }
@@ -70,6 +72,10 @@ public class FileCreate implements Packet, JSONSerializable {
         if (obj instanceof JSONObject)
           {
             tmp = (JSONObject)obj;
+            if (tmp.containsKey("encrypted_filename"))
+              this.encrypted_filename = tmp.getString("encrypted_filename");
+            else
+              throw new InvalidObjectException("Expected an FileCreate object -- encrypted_filename expected.");
             if (tmp.containsKey("users")) {
                 this.users = new ArrayList<>();
                 for(Object object : tmp.getArray("users")) {
@@ -109,6 +115,7 @@ public class FileCreate implements Packet, JSONSerializable {
         JSONArray tokens_array = new JSONArray();
         tokens_array.addAll(this.getTokens());
         
+        object.put("encrypted_filename", this.getEncrypted_filename());
         object.put("users", users_array);
         object.put("tokens", tokens_array);
 
@@ -168,5 +175,12 @@ public class FileCreate implements Packet, JSONSerializable {
      */
     public List<String> getTokens() {
         return tokens;
+    }
+
+    /**
+     * @return the encrypted_filename
+     */
+    public String getEncrypted_filename() {
+        return encrypted_filename;
     }
 }
