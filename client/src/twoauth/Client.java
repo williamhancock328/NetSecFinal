@@ -336,29 +336,36 @@ public class Client {
                 if (exists) {
 
                     //File password
-                    filePass = new String(console.readPassword("Create a file password:"));
-
+                    filePass = new String(console.readPassword("Create a file password: "));
+                            
+                    // Construct the KeyPair <SecretKey, IV> for encryption of the keywords and file.
+                    
+                    
                     //SAVE ENCRYPTED FILE PASSWORD ?????
                     //Key derived from file pass, this uses the user's desired file pass AND their username 
-                    SecretKey fileKey = scrypt.genKey(filePass, user);
-                    byte[] fileKeyBytes = fileKey.getEncoded(); //byte interpretation of key
-                    String fileKeyBase64 = Base64.getEncoder().encodeToString(fileKeyBytes);
+                    //SecretKey fileKey = scrypt.genKey(filePass, user);
+                    //byte[] fileKeyBytes = fileKey.getEncoded(); //byte interpretation of key
+                    //String fileKeyBase64 = Base64.getEncoder().encodeToString(fileKeyBytes);
                     //System.out.println(fileKeyBase64); //String interpreation of file key
 
                     //TO-DO: Encrypt file contents with file key
                     //Keywords used to associate a file with (searchable encryptin)
-                    System.out.println("Create associated key words. Please separate each word with a comma:");
+                    System.out.println("Create associated key words: ");
                     String keywords = scanner2.nextLine();
                     String[] strings = keywords.split(" ");
                     ArrayList<String> keywordList = new ArrayList<>(Arrays.asList(strings));
 
+                    /**
+                     * Session key
+                     */
+                    
                     // Encode keywords
                     String encoded = Base64.getEncoder().encodeToString(keywordList.toString().getBytes());
-                    //System.out.println("Encoded: " + encoded);
+                    System.out.println("Encoded: " + encoded);
                     // Decode to byte[]
                     byte[] decodedBytes = Base64.getDecoder().decode(encoded);
-//                    String decodedString = new String(decodedBytes);
-//                    System.out.println("Decoded: " + decodedString);
+//                  String decodedString = new String(decodedBytes);
+//                  System.out.println("Decoded: " + decodedString);
 
                     //Encrypt the key words
                     byte[] EncKeyWords = ClientSessionKeyEncryption.encrypt(sessionKeyClient, decodedBytes, user, service);
@@ -370,7 +377,7 @@ public class Client {
                     String stringIV = Base64.getEncoder().encodeToString(iv);
                     //System.out.println(stringIV);
 
-                    //Encrypt the nonce
+                    // Encrypt the nonce
                     byte[] EncNonce = ClientSessionKeyEncryption.encrypt(sessionKeyClient, nonceDBytes, user, service);
                     String StringEncNonce = Base64.getEncoder().encodeToString(EncNonce);
                     //System.out.println("Client side enc. nonce: " + StringEncNonce);
