@@ -44,10 +44,10 @@ public class FileSymmetricCrypto {
                 return null;
             
             // Encrypt the contents of the file with the Key and IV pair. 
-            byte[] encrypted = aesCipher.doFinal(file);
+            byte[] cipher_file = aesCipher.doFinal(file);
 
             // Encode the Ek(file) into Base64 and return.
-            return Base64.getEncoder().encodeToString(encrypted);
+            return Base64.getEncoder().encodeToString(cipher_file);
         } 
         catch(NoSuchAlgorithmException nae)
         {

@@ -3,15 +3,14 @@ package client;
 import ClientServerCrypto.ClientMasterKeyDecryption;
 import ClientServerCrypto.ClientSessionKeyDecryption;
 import ClientServerCrypto.ClientSessionKeyEncryption;
-import ClientServerCrypto.scrypt;
 import packets.*;
 import javax.net.ssl.SSLSocket;
 import communication.*;
 import conf.Config;
 import conf.Host;
 import java.io.Console;
+import java.io.File;
 import java.io.IOException;
-import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -22,12 +21,23 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import merrimackutil.util.NonceCache;
+import merrimackutil.util.Tuple;
+import packets.filepack.FileCreate;
+import packets.filepack.FileReceived;
+import packets.filepack.FileSend;
+import sse.Token;
+import sse.client.FileNameSymmetricCrypto;
+import sse.client.FileSymmetricCrypto;
+import sse.client.SecretKeyGenerator;
+import sse.client.Tokenizer;
 import sse.transport.TransportManager;
 
 /**
@@ -72,6 +82,9 @@ public class Client {
         Scanner scanner = new Scanner(System.in);
 
         config = new Config(host); //Config to hosts.json
+        
+        // Construct a new Transport Manager
+        transportManager = new TransportManager();
 
         System.out.println("Login Menu:");
         System.out.println("1. Create a new user");
@@ -302,7 +315,7 @@ public class Client {
     Communication phase.
     This is where send and request files take place
      */
-    private static boolean CommPhase() throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
+    private static boolean CommPhase() throws IOException, InvalidKeySpecException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException, NoSuchMethodException {
 
         //Welcome Message
         System.out.println("Welcome to the Cloud Server!");
@@ -337,6 +350,8 @@ public class Client {
 
                 // If valid path config
                 if (exists) {
+                    // Construct the file
+                    File file = new File(fileLocation);
 
                     //File password
                     filePass = new String(console.readPassword("Create a file password: "));
@@ -357,7 +372,53 @@ public class Client {
                     String keywords = scanner2.nextLine();
                     String[] strings = keywords.split(" ");
                     ArrayList<String> keywordList = new ArrayList<>(Arrays.asList(strings));
+                                        
+                    //Ask for users who should have access to this file 
+                    System.out.println("Add users who should have access to this file: ");
+                    String users = scanner2.nextLine();
+                    String[] users_strings = users.split(" ");
+                    ArrayList<String> usersList = new ArrayList<>(Arrays.asList(users_strings));
+                    
+                    
+                    // Assure there exists keywords
+                    if(keywordList.isEmpty())
+                        throw new IllegalArgumentException("Keywords must be present for the SEE in the cloud-service.");
 
+                    // Starting SSE code here - Alex
+                    
+                    // 1. Construct the FP_Key and FP_IV
+                    Tuple<SecretKey, String> fp_pair = SecretKeyGenerator.genKey(filePass);
+                    SecretKey fpKey = fp_pair.getFirst();
+                    String fpIV = fp_pair.getSecond();
+                    
+                    // 2. Conver the Keywords into Tokens w/ Sym. Encryption.
+                    List<Token> tokens = Tokenizer.tokenize(keywordList, fpKey, fpIV);
+                    List<String> tokens_strings = tokens.stream().map(n -> n.getValue()).collect(Collectors.toList());
+                    
+                    // 3. Encrypt the contents of the file
+                    String encoded_file = FileSymmetricCrypto.encrypt(Files.readAllBytes(path), fpKey, fpIV);
+                    
+                    // 4. Encrypt File.name
+                    System.out.println("File name: " + file.getName());
+                    String encrypted_filename = FileNameSymmetricCrypto.encryptFileName(file.getName(), fpKey, fpIV);
+                    
+                    // 5. Consrtuct & Send the FileCreate Packet
+                    FileCreate fileCreate = new FileCreate(encrypted_filename, usersList, tokens_strings);
+                    SSLSocket out = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), fileCreate); // Send the packet
+                    FileReceived fileReceived = (FileReceived) Communication.read(out); // Receive the fileReceived packet
+                    
+                    // 6. Initilialize the FileSend stream.
+                    List<FileSend> fileSends = transportManager.fromEncodedFile(fileReceived.getFileID(), encoded_file);
+                    
+                    for(int i = 0; i < fileSends.size(); i++) {
+                        FileSend packet = fileSends.get(i); // Get the next packet
+                   
+                        SSLSocket send_out = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), packet); // Send the packet
+                        FileReceived send_fileReceived = (FileReceived) Communication.read(send_out); // Receive the fileReceived packet
+                    }
+                    
+                    // Done! File should now be updated
+                    System.out.println("Could Server Document ID: " + fileReceived.getFileID());
                     
                     
                     /**

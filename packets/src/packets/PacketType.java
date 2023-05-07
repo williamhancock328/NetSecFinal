@@ -29,6 +29,8 @@ public enum PacketType {
       FileReceived(packets.filepack.FileReceived.class),
       FileSearchRequest(packets.filepack.FileSearchRequest.class),
       FileSearchResponse(packets.filepack.FileSearchResponse.class),
+      
+      // Session Key Abstracted Layer Packet
       SessionKeyPackets(packets.abstractpk.SessionKeyPackets.class)
       ;
 

@@ -34,7 +34,10 @@ public class TransportManager {
      * @param ID
      * @param packet 
      */
-    public void received(String ID, FileSend packet) {
+    public void received(FileSend packet) {
+        
+        String ID = packet.getID(); // ID of the document
+        
         // Add FileSend to the list
         if(transport_table.containsKey(ID)) {
             transport_table.get(ID).add(packet);
