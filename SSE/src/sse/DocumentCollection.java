@@ -24,7 +24,7 @@ public class DocumentCollection {
      * Default Constructor
      */
     public DocumentCollection() {
-        index_table = new HashMap<>();
+        this.index_table = new HashMap<>();
     }
     
     /**

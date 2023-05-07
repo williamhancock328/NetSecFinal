@@ -72,14 +72,14 @@ public class FileSymmetricCrypto {
     }
     
     /**
-     * Encrypts a file using a the file_password <Key,IV> pair
+     * Decrypts a file using a the file_password <Key,IV> pair
      * 
      * @param cipher_text Encrypted File represented as the file text
      * @param key Key used to encrypt the tokens
      * @param Base64_IV IV used to encrypt the tokens
      * @return a Base64 encoding of the file encrypted
      */
-    public static byte[] encrypt(String cipher_text, SecretKey key, String Base64_IV) {
+    public static byte[] decrypt(String cipher_text, SecretKey key, String Base64_IV) {
         
         IvParameterSpec IV = new IvParameterSpec(Base64.getDecoder().decode(Base64_IV));
         Cipher aesCipher = null;

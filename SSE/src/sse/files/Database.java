@@ -11,7 +11,6 @@ import merrimackutil.json.JsonIO;
 import merrimackutil.json.types.JSONArray;
 import merrimackutil.json.types.JSONObject;
 import merrimackutil.json.types.JSONType;
-import sse.DocumentCollection;
 
 /**
  * Represents the database that holds values of EncryptedDocuments
