@@ -42,27 +42,27 @@ public class SSE {
     }
     
     public Token Token(Key secretKey, String keyword) {
-        
+        return null;
     }
     
     public ArrayList<EncryptedDocument> Search (Token tk){
-        
+        return null;
     }
     
     public Token InsertToken(Key secretKey, String keyword) {
-        
+        return null;
     }
 
-    public ArrayList<EncryptedDocument> Insert (Token tk){
-        
+    public ArrayList<EncryptedDocument> Insert(Token tk){
+        return null;
     }
 
     public Token DeleteToken(Key secretKey, int id) {
-        
+        return null;
     }
 
-    public ArrayList<EncryptedDocument> Delete (Token dtk){
-        
+    public ArrayList<EncryptedDocument> Delete(Token dtk){
+        return null;
     }
 
     /**

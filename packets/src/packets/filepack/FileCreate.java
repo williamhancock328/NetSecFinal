@@ -1,60 +1,46 @@
 package packets.filepack;
 
 import java.io.InvalidObjectException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import merrimackutil.json.JSONSerializable;
 import merrimackutil.json.JsonIO;
+import merrimackutil.json.types.JSONArray;
 import merrimackutil.json.types.JSONObject;
 import merrimackutil.json.types.JSONType;
 import packets.Packet;
 import packets.PacketType;
 
 /**
- *
+ * Represents a file Create Packet
+ * This is a Client --> Server packet
  * @author Alex
  */
-public class FileUpload implements Packet, JSONSerializable {
+public class FileCreate implements Packet, JSONSerializable {
         
     // Packet Type
-    private static final PacketType PACKET_TYPE = PacketType.FileUpload;
+    private static final PacketType PACKET_TYPE = PacketType.FileCreate;
     
     // Packet Data
-    private String user;
-    private String pass;
-    private int otp;
+    private List<String> users;
+    private List<String> tokens;
 
     /**
-     * Constructs a new AuthRequest packet
-     * @param user
-     * @param pass
-     * @param opt 
+     * Constructs a new FileCreate packet
      */
-    public FileUpload(String user, String pass, int opt) {
-        this.user = user;
-        this.pass = pass;
-        this.otp = opt;
+    public FileCreate(List<String> users, List<String> tokens) {
+        this.users = users;
+        this.tokens = tokens;
     }
-
-    public String getUser() {
-        return user;
-    }
-
-    public String getPass() {
-        return pass;
-    }
-
-    public int getOtp() {
-        return otp;
-    }
-
 
     /**
      * Converts a JSONObject into a ticket object
      * @param packet byte[] of information representing this packet
      * @throws InvalidObjectException Thrown if {@code object} is not a Ticket JSONObject
      */
-    public FileUpload(String packet, PacketType packetType1) throws InvalidObjectException {
+    public FileCreate(String packet, PacketType packetType1) throws InvalidObjectException {
         recieve(packet);
     }
 
@@ -84,21 +70,29 @@ public class FileUpload implements Packet, JSONSerializable {
         if (obj instanceof JSONObject)
           {
             tmp = (JSONObject)obj;
-            if (tmp.containsKey("user"))
-              this.user = tmp.getString("user");
-            else
-              throw new InvalidObjectException("Expected an Ticket object -- user expected.");
-            if (tmp.containsKey("pass"))
-              this.pass = tmp.getString("pass");
-            else
-              throw new InvalidObjectException("Expected an Ticket object -- pass expected.");
-            if (tmp.containsKey("otp"))
-              this.otp = tmp.getInt("otp");
-            else
-              throw new InvalidObjectException("Expected an Ticket object -- otp expected.");
+            if (tmp.containsKey("users")) {
+                this.users = new ArrayList<>();
+                for(Object object : tmp.getArray("users")) {
+                    if(object instanceof String) {
+                        this.getUsers().add((String) object);
+                    }
+                }
+            } else {
+              throw new InvalidObjectException("Expected an FileCreate object -- users array expected.");
+            }
+            if (tmp.containsKey("tokens")) {
+                this.tokens = new ArrayList<>();
+                  for(Object object : tmp.getArray("tokens")) {
+                      if(object instanceof String) {
+                          this.getTokens().add((String) object);
+                      }
+                  }
+            } else { 
+              throw new InvalidObjectException("Expected an FileCreate object -- tokens array expected.");
+            }
           }
           else 
-            throw new InvalidObjectException("Expected a Ticket - Type JSONObject not found.");
+            throw new InvalidObjectException("Expected a FileCreate - Type JSONObject not found.");
     }
 
     /**
@@ -108,10 +102,15 @@ public class FileUpload implements Packet, JSONSerializable {
     @Override
     public JSONType toJSONType() {
         JSONObject object = new JSONObject();
-        object.put("packetType", PACKET_TYPE.toString());
-        object.put("user", this.user);
-        object.put("pass", this.pass);
-        object.put("otp", this.otp);
+
+        JSONArray users_array = new JSONArray();
+        users_array.addAll(this.getUsers());
+        
+        JSONArray tokens_array = new JSONArray();
+        tokens_array.addAll(this.getTokens());
+        
+        object.put("users", users_array);
+        object.put("tokens", tokens_array);
 
         return object;
     }
@@ -144,7 +143,7 @@ public class FileUpload implements Packet, JSONSerializable {
              JSONObject jsonObject = JsonIO.readObject(packet); // String to JSONObject
              deserialize(jsonObject); // Deserialize jsonObject
         } catch (InvalidObjectException ex) {
-            Logger.getLogger(FileUpload.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(FileCreate.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -155,5 +154,19 @@ public class FileUpload implements Packet, JSONSerializable {
     @Override
     public PacketType getType() {
         return PACKET_TYPE;
+    }
+
+    /**
+     * @return the users
+     */
+    public List<String> getUsers() {
+        return users;
+    }
+
+    /**
+     * @return the tokens
+     */
+    public List<String> getTokens() {
+        return tokens;
     }
 }
