@@ -46,7 +46,6 @@ import static packets.PacketType.AuthRequest;
 import packets.ServerResponse;
 import packets.SessionKeyRequest;
 import packets.SessionKeyResponse;
-import twoauth.Server;
 import twoauth.scrypt;
 import twoauth.totp;
 
@@ -92,7 +91,7 @@ public class KDCServer {
                 try {
                     v = new Vault(sslconfig.getPassword_file());
                 } catch (IOException ex) {
-                    Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(KDCServer.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 System.setProperty("javax.net.ssl.keyStore", sslconfig.getKeystore_file());
                 System.setProperty("javax.net.ssl.keyStorePassword", sslconfig.getKeystore_pass());

@@ -1,4 +1,4 @@
-package twoauth;
+package client;
 
 import ClientServerCrypto.ClientMasterKeyDecryption;
 import ClientServerCrypto.ClientSessionKeyDecryption;
