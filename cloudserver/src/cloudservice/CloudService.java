@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.crypto.BadPaddingException;
@@ -39,6 +40,9 @@ import packets.PacketType;
 import static packets.PacketType.ClientHello;
 import packets.ServerHello;
 import packets.Ticket;
+import packets.filepack.FileCreate;
+import sse.SSE;
+import sse.transport.TransportManager;
 
 public class CloudService {
 
@@ -50,6 +54,9 @@ public class CloudService {
     private static byte[] serverSidesessionKey;
     private static boolean handshakeStatus = false;
     private static NonceCache nc = new NonceCache(32, 30);
+    
+    private static SSE SSE; // SSE object managing Documents & Files
+    private static TransportManager transportManager;
 
     public static void main(String[] args) throws FileNotFoundException, InvalidObjectException, NoSuchPaddingException, InvalidKeySpecException, InvalidKeyException, IllegalBlockSizeException, InvalidAlgorithmParameterException, BadPaddingException {
         OptionParser op = new OptionParser(args);
@@ -71,8 +78,16 @@ public class CloudService {
                     + " -h, --help Display the help.");
             System.exit(0);
         } else if (Objects.equals(opt.getFirst(), 'c')) {
+            
             // Initialize config
             config = new Config(opt.getSecond());
+            
+            // Construct a new SSE file which will construct a DocumentCollection object and load in all the Entries
+            SSE = new SSE(config.getDb_loc());
+            
+            // Construct a new Transport Manager
+            transportManager = new TransportManager();
+            
             opt = op.getLongOpt(false);
             if (Objects.equals(opt.getFirst(), 'a')) {
                 sslconfig = new SSLConfig(opt.getSecond());
@@ -138,6 +153,16 @@ public class CloudService {
 
             // Switch statement only goes over packets expected by the KDC, any other packet will be ignored.
             switch (packet.getType()) {
+                
+                case FileCreate: {
+                    FileCreate FileCreate_packet = (FileCreate) packet;
+                    
+                    // Construct a new UUID
+                    UUID uuid = UUID.randomUUID();
+
+                    // Add the file too the TransportLayer                    
+                }
+                
                 // ClientHello package
                 case ClientHello: {
                     // MESSAGE 2:  decrypt ticket + send fresh nonceS, iv, and encryption of fresh nonceS

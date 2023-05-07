@@ -1,6 +1,7 @@
 package sse;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.security.Key;
 import java.util.ArrayList;
@@ -37,6 +38,8 @@ public class SSE {
         } catch (FileNotFoundException ex) {
             Logger.getLogger(SSE.class.getName()).log(Level.SEVERE, null, ex);
         } catch (InvalidObjectException ex) {
+            Logger.getLogger(SSE.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
             Logger.getLogger(SSE.class.getName()).log(Level.SEVERE, null, ex);
         }
         

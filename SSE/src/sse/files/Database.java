@@ -2,6 +2,7 @@ package sse.files;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.util.List;
 import java.util.Objects;
@@ -20,14 +21,16 @@ public class Database implements JSONSerializable {
     
     private String path;
     
-    public Database(String path) throws FileNotFoundException, InvalidObjectException {
+    public Database(String path) throws FileNotFoundException, InvalidObjectException, IOException {
         this.path = path;
         
         // Construct file
         File file = new File(path);
         
         if(file == null || !file.exists()) {
-            throw new FileNotFoundException("File from path for EchoServiceConfig does not point to a vadlid configuration json file.");
+            //throw new FileNotFoundException("File from path for EchoServiceConfig does not point to a vadlid configuration json file.");
+            file.createNewFile(); // Construct a new file and add nothing to the documents database
+            return;
         }
         
         // Construct JSON Object and load entries
