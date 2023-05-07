@@ -12,7 +12,6 @@ public enum PacketType {
       EnrollRequest(packets.EnrollRequest.class),
       AuthRequest(packets.AuthRequest.class),
       ServerResponse(packets.ServerResponse.class),
-      FileUpload(packets.filepack.FileUpload.class),
       SessionKeyRequest(packets.SessionKeyRequest.class),
       SessionKeyResponse(packets.SessionKeyResponse.class),
       ClientHello(packets.ClientHello.class),
@@ -22,7 +21,15 @@ public enum PacketType {
       Ticket(packets.Ticket.class),
       HandshakeStatus(packets.HandshakeStatus.class),
       KeyWordSend(packets.KeyWordSend.class),
-      KeyWordRequest(packets.KeyWordRequest.class);
+      KeyWordRequest(packets.KeyWordRequest.class),
+      
+      // File Packets
+      FileSend(packets.filepack.FileSend.class),
+      FileCreate(packets.filepack.FileCreate.class),
+      FileReceived(packets.filepack.FileReceived.class),
+      FileSearchRequest(packets.filepack.FileSearchRequest.class),
+      FileSearchResponse(packets.filepack.FileSearchResponse.class)
+      ;
 
       
     private Class packetClass;
