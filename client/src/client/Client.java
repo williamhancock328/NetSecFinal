@@ -28,6 +28,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import merrimackutil.util.NonceCache;
+import sse.transport.TransportManager;
 
 /**
  *
@@ -46,6 +47,8 @@ public class Client {
     private static byte[] sessionKeyClient; //Session key, client side
     private static String service = "cloudservice"; // Service name 
 
+    private static TransportManager transportManager;
+    
     /**
      * Client Side Communication Goal is to establish trust with KDC and gain
      * access to cloud-server.From there, send or request files
@@ -355,42 +358,44 @@ public class Client {
                     String[] strings = keywords.split(" ");
                     ArrayList<String> keywordList = new ArrayList<>(Arrays.asList(strings));
 
+                    
+                    
                     /**
                      * Session key
                      */
                     
                     // Encode keywords
-                    String encoded = Base64.getEncoder().encodeToString(keywordList.toString().getBytes());
-                    System.out.println("Encoded: " + encoded);
-                    // Decode to byte[]
-                    byte[] decodedBytes = Base64.getDecoder().decode(encoded);
-//                  String decodedString = new String(decodedBytes);
-//                  System.out.println("Decoded: " + decodedString);
-
-                    //Encrypt the key words
-                    byte[] EncKeyWords = ClientSessionKeyEncryption.encrypt(sessionKeyClient, decodedBytes, user, service);
-                    String StringEncKeyWords = Base64.getEncoder().encodeToString(EncKeyWords);
-                    //System.out.println("Client side enc. keywords: " + StringEncKeyWords);
-
-                    // IV used in key word encryption
-                    byte[] iv = ClientSessionKeyEncryption.getRawIv();
-                    String stringIV = Base64.getEncoder().encodeToString(iv);
-                    //System.out.println(stringIV);
-
-                    // Encrypt the nonce
-                    byte[] EncNonce = ClientSessionKeyEncryption.encrypt(sessionKeyClient, nonceDBytes, user, service);
-                    String StringEncNonce = Base64.getEncoder().encodeToString(EncNonce);
-                    //System.out.println("Client side enc. nonce: " + StringEncNonce);
-                    //System.out.println("OG nonce " + Base64.getEncoder().encodeToString(nonceDBytes));
-
-                    // IV used in nonce encryption
-                    byte[] iv2 = ClientSessionKeyEncryption.getRawIv();
-                    String stringIV2 = Base64.getEncoder().encodeToString(iv2);
-                    //System.out.println(stringIV2);
-
-                    // MESSAGE 1: Client sends encrypted key words and nonce for file send
-                    KeyWordSend sendKeyWords = new KeyWordSend(StringEncKeyWords, StringEncNonce, stringIV, user, stringIV2); // Construct the packet
-                    SSLSocket out = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), sendKeyWords); // Send the packet
+//                    String encoded = Base64.getEncoder().encodeToString(keywordList.toString().getBytes());
+//                    System.out.println("Encoded: " + encoded);
+//                    // Decode to byte[]
+//                    byte[] decodedBytes = Base64.getDecoder().decode(encoded);
+////                  String decodedString = new String(decodedBytes);
+////                  System.out.println("Decoded: " + decodedString);
+//
+//                    //Encrypt the key words
+//                    byte[] EncKeyWords = ClientSessionKeyEncryption.encrypt(sessionKeyClient, decodedBytes, user, service);
+//                    String StringEncKeyWords = Base64.getEncoder().encodeToString(EncKeyWords);
+//                    //System.out.println("Client side enc. keywords: " + StringEncKeyWords);
+//
+//                    // IV used in key word encryption
+//                    byte[] iv = ClientSessionKeyEncryption.getRawIv();
+//                    String stringIV = Base64.getEncoder().encodeToString(iv);
+//                    //System.out.println(stringIV);
+//
+//                    // Encrypt the nonce
+//                    byte[] EncNonce = ClientSessionKeyEncryption.encrypt(sessionKeyClient, nonceDBytes, user, service);
+//                    String StringEncNonce = Base64.getEncoder().encodeToString(EncNonce);
+//                    //System.out.println("Client side enc. nonce: " + StringEncNonce);
+//                    //System.out.println("OG nonce " + Base64.getEncoder().encodeToString(nonceDBytes));
+//
+//                    // IV used in nonce encryption
+//                    byte[] iv2 = ClientSessionKeyEncryption.getRawIv();
+//                    String stringIV2 = Base64.getEncoder().encodeToString(iv2);
+//                    //System.out.println(stringIV2);
+//
+//                    // MESSAGE 1: Client sends encrypted key words and nonce for file send
+//                    KeyWordSend sendKeyWords = new KeyWordSend(StringEncKeyWords, StringEncNonce, stringIV, user, stringIV2); // Construct the packet
+//                    SSLSocket out = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), sendKeyWords); // Send the packet
 
                 } else {
 
