@@ -11,8 +11,11 @@ import packets.Packet;
 import packets.PacketType;
 
 /**
- * Represents a piece of a file being sent
- * Middle part to the file sending protocol.
+ * Represents a file being received.
+ * Ending part to the file sending protocol.
+ * This packet can used by either the client or the server.
+ * 
+ * Basically says "give me the next FileSend (fragment)" if their is one.
  * @author Alex
  */
 public class FileReceived implements Packet, JSONSerializable {

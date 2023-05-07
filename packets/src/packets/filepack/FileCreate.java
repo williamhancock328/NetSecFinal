@@ -14,8 +14,8 @@ import packets.Packet;
 import packets.PacketType;
 
 /**
- * Represents a piece of a file being sent
- * Middle part to the file sending protocol.
+ * Represents a file Create Packet
+ * This is a Client --> Server packet
  * @author Alex
  */
 public class FileCreate implements Packet, JSONSerializable {

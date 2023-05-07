@@ -13,6 +13,7 @@ import packets.PacketType;
 /**
  * Represents a piece of a file being sent
  * Middle part to the file sending protocol.
+ * This packet can used by either the client or the server.
  * @author Alex
  */
 public class FileSend implements Packet, JSONSerializable, Comparable<FileSend> {
