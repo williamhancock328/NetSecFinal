@@ -40,7 +40,7 @@ import static packets.PacketType.ClientHello;
 import packets.ServerHello;
 import packets.Ticket;
 
-public class EchoService {
+public class CloudService {
 
     private static Config config;
     private static SSLConfig sslconfig;
@@ -102,10 +102,10 @@ public class EchoService {
                     ioe.printStackTrace();
                 } catch (NoSuchMethodException ex) {
                     System.out.println("EchoService No Such Method Exception");
-                    Logger.getLogger(EchoService.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(CloudService.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (NoSuchAlgorithmException ex) {
                     System.out.println("EchoService No Such Algorithm Exception");
-                    Logger.getLogger(EchoService.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(CloudService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         }
@@ -162,7 +162,7 @@ public class EchoService {
                     // Perform decryption with info from tkt, this gives us the session key
                     serverSidesessionKey = EchoTktDecryption.decrypt(ticket.geteSKey(), ticket.getIv(), serviceName, serviceSecret, ticket.getCreateTime(), ticket.getValidityTime(), ticket.getsName());
 
-                    //.out.println("EchoService session key: " + Base64.getEncoder().encodeToString(serverSidesessionKey));
+                    //.out.println("CloudService session key: " + Base64.getEncoder().encodeToString(serverSidesessionKey));
 
                     // Fresh nonce S
                     byte[] nonceSBytes = nc.getNonce();
