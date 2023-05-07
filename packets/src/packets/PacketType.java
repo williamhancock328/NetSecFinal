@@ -26,7 +26,7 @@ public enum PacketType {
       // File Packets
       FileSend(packets.filepack.FileSend.class),
       FileCreate(packets.filepack.FileCreate.class),
-
+      FileReceived(packets.filepack.FileReceived.class),
       ;
 
       

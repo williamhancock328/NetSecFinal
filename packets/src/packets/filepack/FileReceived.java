@@ -1,13 +1,10 @@
 package packets.filepack;
 
 import java.io.InvalidObjectException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import merrimackutil.json.JSONSerializable;
 import merrimackutil.json.JsonIO;
-import merrimackutil.json.types.JSONArray;
 import merrimackutil.json.types.JSONObject;
 import merrimackutil.json.types.JSONType;
 import packets.Packet;
@@ -18,14 +15,14 @@ import packets.PacketType;
  * Middle part to the file sending protocol.
  * @author Alex
  */
-public class FileCreate implements Packet, JSONSerializable {
+public class FileReceived implements Packet, JSONSerializable {
         
     // Packet Type
-    private static final PacketType PACKET_TYPE = PacketType.FileCreate;
+    private static final PacketType PACKET_TYPE = PacketType.FileReceived;
     
     // Packet Data
-    private List<String> users;
-    private List<String> tokens;
+    private boolean received; // Boolean if the file_bit was reveived with no issues
+    private String fileID = ""; // May be null if the user is sending this too the server.
 
     /**
      * Constructs a new AuthRequest packet
@@ -33,9 +30,9 @@ public class FileCreate implements Packet, JSONSerializable {
      * @param pass
      * @param opt 
      */
-    public FileCreate(List<String> users, List<String> tokens) {
-        this.users = users;
-        this.tokens = tokens;
+    public FileReceived(boolean received, String fileID) {
+        this.received = received;
+        this.fileID = fileID;
     }
 
     /**
@@ -43,7 +40,7 @@ public class FileCreate implements Packet, JSONSerializable {
      * @param packet byte[] of information representing this packet
      * @throws InvalidObjectException Thrown if {@code object} is not a Ticket JSONObject
      */
-    public FileCreate(String packet, PacketType packetType1) throws InvalidObjectException {
+    public FileReceived(String packet, PacketType packetType1) throws InvalidObjectException {
         recieve(packet);
     }
 
@@ -73,29 +70,17 @@ public class FileCreate implements Packet, JSONSerializable {
         if (obj instanceof JSONObject)
           {
             tmp = (JSONObject)obj;
-            if (tmp.containsKey("users")) {
-                this.users = new ArrayList<>();
-                for(Object object : tmp.getArray("users")) {
-                    if(object instanceof String) {
-                        this.getUsers().add((String) object);
-                    }
-                }
-            } else {
-              throw new InvalidObjectException("Expected an FileCreate object -- users array expected.");
-            }
-            if (tmp.containsKey("tokens")) {
-                this.tokens = new ArrayList<>();
-                  for(Object object : tmp.getArray("tokens")) {
-                      if(object instanceof String) {
-                          this.getTokens().add((String) object);
-                      }
-                  }
-            } else { 
-              throw new InvalidObjectException("Expected an FileCreate object -- tokens array expected.");
-            }
+            if (tmp.containsKey("received"))
+              this.received = tmp.getBoolean("received");
+            else
+              throw new InvalidObjectException("Expected an FileReceived object -- received expected.");
+            if (tmp.containsKey("fileID"))
+              this.fileID = tmp.getString("fileID");
+            else
+              throw new InvalidObjectException("Expected an FileReceived object -- fileID expected.");
           }
           else 
-            throw new InvalidObjectException("Expected a FileCreate - Type JSONObject not found.");
+            throw new InvalidObjectException("Expected a FileSend - Type JSONObject not found.");
     }
 
     /**
@@ -105,15 +90,9 @@ public class FileCreate implements Packet, JSONSerializable {
     @Override
     public JSONType toJSONType() {
         JSONObject object = new JSONObject();
-
-        JSONArray users_array = new JSONArray();
-        users_array.addAll(this.getUsers());
-        
-        JSONArray tokens_array = new JSONArray();
-        tokens_array.addAll(this.getTokens());
-        
-        object.put("users", users_array);
-        object.put("tokens", tokens_array);
+        object.put("packetType", PACKET_TYPE.toString());
+        object.put("received", this.isReceived());
+        object.put("fileID", this.getFileID()); // may be null / empty
 
         return object;
     }
@@ -146,7 +125,7 @@ public class FileCreate implements Packet, JSONSerializable {
              JSONObject jsonObject = JsonIO.readObject(packet); // String to JSONObject
              deserialize(jsonObject); // Deserialize jsonObject
         } catch (InvalidObjectException ex) {
-            Logger.getLogger(FileCreate.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(FileReceived.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -160,16 +139,17 @@ public class FileCreate implements Packet, JSONSerializable {
     }
 
     /**
-     * @return the users
+     * @return the received
      */
-    public List<String> getUsers() {
-        return users;
+    public boolean isReceived() {
+        return received;
     }
 
     /**
-     * @return the tokens
+     * @return the fileID
      */
-    public List<String> getTokens() {
-        return tokens;
+    public String getFileID() {
+        return fileID;
     }
+    
 }
