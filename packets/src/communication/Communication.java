@@ -33,6 +33,7 @@ import packets.ServerHello;
 import packets.SessionKeyRequest;
 import packets.SessionKeyResponse;
 import packets.Ticket;
+import packets.abstractpk.SessionKeyPackets;
 import packets.filepack.FileCreate;
 import packets.filepack.FileReceived;
 import packets.filepack.FileSearchRequest;
@@ -143,6 +144,7 @@ public class Communication {
             case FileSearchRequest: return new FileSearchRequest(line, packetType);
             case FileSearchResponse: return new FileSearchResponse(line, packetType);
             case FileSend: return new FileSend(line, packetType);
+            case SessionKeyPackets: return new SessionKeyPackets(line, packetType);
             default:
                 return null;
         }

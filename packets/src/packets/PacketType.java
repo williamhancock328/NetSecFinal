@@ -28,7 +28,8 @@ public enum PacketType {
       FileCreate(packets.filepack.FileCreate.class),
       FileReceived(packets.filepack.FileReceived.class),
       FileSearchRequest(packets.filepack.FileSearchRequest.class),
-      FileSearchResponse(packets.filepack.FileSearchResponse.class)
+      FileSearchResponse(packets.filepack.FileSearchResponse.class),
+      SessionKeyPackets(packets.abstractpk.SessionKeyPackets.class)
       ;
 
       
