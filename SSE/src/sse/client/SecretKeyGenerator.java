@@ -1,6 +1,7 @@
 package sse.client;
 
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Security;
 import java.security.spec.InvalidKeySpecException;
@@ -38,19 +39,19 @@ public class SecretKeyGenerator {
 
         SecretKeyFactory factory = SecretKeyFactory.getInstance("SCRYPT");
 
-        // Get a 16-byte IV for an AES key if it does not exist.
+        // Step 1 is to hash the password
+        byte[] hash = hash(password.getBytes());
+        
+        
+        // Step 2 is to take the first 16-bits of the hash and assign it to the salt / IV.
         byte[] salt = new byte[16];
-        byte[] password_bytes = password.getBytes(StandardCharsets.UTF_8);
-        
-        if(password_bytes.length < 16)
-            throw new InvalidKeySpecException("We must require that the password_bytes array be at least 16 bytes so we can do Symtetic Encryption.");
-        
-        // Move 16 of the password_bytes to the salt
-        for(int i = 0; i < salt.length; i++) {
-            salt[i] = password_bytes[i];
+        for(int i = 0; i < hash.length; i++) {
+            // First 16 bits are the salt / IV
+            if(i < 16) {
+                salt[i] = hash[i];
+            } else 
+                break;
         }
-        
-        // WHATEVER THIS IS, IT NEEDS TO BE STORED AND SENT FOR DECRYPTION (GETTER OR SUM IDC)!!!
 
         // Derive an AES key from the password using the password. The memory
         // required to run the derivation, in bytes, is:
@@ -61,12 +62,21 @@ public class SecretKeyGenerator {
                 PARALLELIZATION, KEY_SIZE);
 
         // Generate the secrete key.
-        SecretKey tmp = factory.generateSecret(
-                scryptSpec);
+        SecretKey tmp = factory.generateSecret(scryptSpec);
         SecretKey key = new SecretKeySpec(tmp.getEncoded(), "AES");
         return new Tuple(key, Base64.getEncoder().encode(salt));
     }
     
+    /**
+     * Used to SHA2-256 Hash the keyword
+     * @param encrypted_keyword
+     * @return 
+     */
+    private static byte[] hash(byte[] encrypted_keyword) throws NoSuchAlgorithmException {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] hashbytes = digest.digest(encrypted_keyword);
+        return hashbytes;
+    }   
     
     
 }
