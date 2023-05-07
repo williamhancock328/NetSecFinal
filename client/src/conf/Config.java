@@ -63,7 +63,7 @@ public class Config implements JSONSerializable {
                     .collect(Collectors.toList());
             
             // Add all hosts to the SSO Client.
-            twoauth.Client.hosts.addAll(hosts);
+            client.Client.hosts.addAll(hosts);
         }       
     }
 
@@ -72,7 +72,7 @@ public class Config implements JSONSerializable {
         JSONObject obj = new JSONObject();
         JSONArray arr = new JSONArray();
         
-        arr.addAll(twoauth.Client.hosts); // Add all hosts to the array.
+        arr.addAll(client.Client.hosts); // Add all hosts to the array.
         
         obj.put("hosts", arr); // Assign the hosts array.
         return obj; // We are never reading this file to JSON.
