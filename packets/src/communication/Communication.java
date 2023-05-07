@@ -24,10 +24,20 @@ import packets.ClientResponse;
 import packets.CommPhase;
 import packets.HandshakeStatus;
 import packets.KeyWordSend;
+import static packets.PacketType.FileCreate;
+import static packets.PacketType.FileReceived;
+import static packets.PacketType.FileSearchRequest;
+import static packets.PacketType.FileSearchResponse;
+import static packets.PacketType.FileSend;
 import packets.ServerHello;
 import packets.SessionKeyRequest;
 import packets.SessionKeyResponse;
 import packets.Ticket;
+import packets.filepack.FileCreate;
+import packets.filepack.FileReceived;
+import packets.filepack.FileSearchRequest;
+import packets.filepack.FileSearchResponse;
+import packets.filepack.FileSend;
 
 /**
  * Utility class used for sending packets across servers
@@ -128,6 +138,11 @@ public class Communication {
             case Ticket: return new Ticket(line, packetType);
             case KeyWordSend: return new KeyWordSend(line, packetType);
             case KeyWordRequest: return new KeyWordRequest(line, packetType);
+            case FileCreate: return new FileCreate(line, packetType);
+            case FileReceived: return new FileReceived(line, packetType);
+            case FileSearchRequest: return new FileSearchRequest(line, packetType);
+            case FileSearchResponse: return new FileSearchResponse(line, packetType);
+            case FileSend: return new FileSend(line, packetType);
             default:
                 return null;
         }

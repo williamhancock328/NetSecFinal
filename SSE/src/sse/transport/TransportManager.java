@@ -80,7 +80,7 @@ public class TransportManager {
      * FileSend packets if necessary
      * @return 
      */
-    public List<FileSend> fromEncodedFile(String encoded_file) {
+    public List<FileSend> fromEncodedFile(String ID, String encoded_file) {
         final int encoded_fragment_length = 1000; // Each fragment should consist of no more than 1000 bytes.
         
         // Loop through {@code encoded_file} every encoded_fragment_length until the end of the file is reached.
@@ -94,7 +94,7 @@ public class TransportManager {
         // Loop through each fragment in results and add it too ret        
         List<FileSend> ret = new ArrayList<>();
         for(int i = 0; i < results.size(); i++) {
-            ret.add(new FileSend(results.get(i), i, false));
+            ret.add(new FileSend(ID, results.get(i), i, false));
         }
         
         // Get the last element of ret, and set isfinal to true.

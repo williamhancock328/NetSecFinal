@@ -22,6 +22,7 @@ public class FileSend implements Packet, JSONSerializable, Comparable<FileSend> 
     private static final PacketType PACKET_TYPE = PacketType.FileSend;
     
     // Packet Data
+    private String ID; // ID of the file, this is necisary.
     private String file_bit;
     private int index;
     private boolean isfinal;
@@ -29,7 +30,8 @@ public class FileSend implements Packet, JSONSerializable, Comparable<FileSend> 
     /**
      * Constructs a new FileSend packet
      */
-    public FileSend(String file_bit, int index, boolean isfinal) {
+    public FileSend(String ID, String file_bit, int index, boolean isfinal) {
+        this.ID = ID;
         this.file_bit = file_bit;
         this.index = index;
         this.isfinal = isfinal;
@@ -70,6 +72,10 @@ public class FileSend implements Packet, JSONSerializable, Comparable<FileSend> 
         if (obj instanceof JSONObject)
           {
             tmp = (JSONObject)obj;
+            if (tmp.containsKey("ID"))
+              this.file_bit = tmp.getString("ID");
+            else
+              throw new InvalidObjectException("Expected an FileSend object -- ID expected.");
             if (tmp.containsKey("file_bit"))
               this.file_bit = tmp.getString("file_bit");
             else
@@ -95,6 +101,7 @@ public class FileSend implements Packet, JSONSerializable, Comparable<FileSend> 
     public JSONType toJSONType() {
         JSONObject object = new JSONObject();
         object.put("packetType", PACKET_TYPE.toString());
+        object.put("ID", this.getID());
         object.put("file_bit", this.getFile_bit());
         object.put("index", this.getIndex());
         object.put("isfinal", this.isIsfinal());
@@ -180,6 +187,13 @@ public class FileSend implements Packet, JSONSerializable, Comparable<FileSend> 
     @Override
     public int compareTo(FileSend o) {
         return this.getIndex() == o.getIndex() ? 0 : (this.getIndex() > o.getIndex() ? 1 : -1 );
+    }
+
+    /**
+     * @return the ID
+     */
+    public String getID() {
+        return ID;
     }
     
 }
