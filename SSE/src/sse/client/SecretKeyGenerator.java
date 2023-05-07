@@ -42,7 +42,6 @@ public class SecretKeyGenerator {
         // Step 1 is to hash the password
         byte[] hash = hash(password.getBytes());
         
-        
         // Step 2 is to take the first 16-bits of the hash and assign it to the salt / IV.
         byte[] salt = new byte[16];
         for(int i = 0; i < hash.length; i++) {
