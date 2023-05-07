@@ -25,10 +25,7 @@ public class FileReceived implements Packet, JSONSerializable {
     private String fileID = ""; // May be null if the user is sending this too the server.
 
     /**
-     * Constructs a new AuthRequest packet
-     * @param user
-     * @param pass
-     * @param opt 
+     * Constructs a new FileReceived packet
      */
     public FileReceived(boolean received, String fileID) {
         this.received = received;

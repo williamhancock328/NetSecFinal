@@ -19,8 +19,6 @@ public class TransportManager {
      * Each packet has an index, this is the count of where the packet is in the stack
      * When a packet is received with the [isfinal] attribute set to true, we know it is the last packet in a sequence
      * 
-     * 
-     * 
      */     
     private HashMap<String, List<FileSend>> transport_table = new HashMap<>();
     

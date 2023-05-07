@@ -28,10 +28,7 @@ public class FileCreate implements Packet, JSONSerializable {
     private List<String> tokens;
 
     /**
-     * Constructs a new AuthRequest packet
-     * @param user
-     * @param pass
-     * @param opt 
+     * Constructs a new FileCreate packet
      */
     public FileCreate(List<String> users, List<String> tokens) {
         this.users = users;
