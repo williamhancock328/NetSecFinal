@@ -15,7 +15,7 @@ import packets.PacketType;
  * Middle part to the file sending protocol.
  * @author Alex
  */
-public class FileSend implements Packet, JSONSerializable {
+public class FileSend implements Packet, JSONSerializable, Comparable<FileSend> {
         
     // Packet Type
     private static final PacketType PACKET_TYPE = PacketType.FileSend;
@@ -164,5 +164,16 @@ public class FileSend implements Packet, JSONSerializable {
      */
     public boolean isIsfinal() {
         return isfinal;
+    }
+
+    /**
+     * CompareTo for FileSend object.
+     * Compares if the index is greater than or not.
+     * @param o
+     * @return 
+     */
+    @Override
+    public int compareTo(FileSend o) {
+        return this.getIndex() == o.getIndex() ? 0 : (this.getIndex() > o.getIndex() ? 1 : -1 );
     }
 }

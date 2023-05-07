@@ -45,10 +45,11 @@ public class FileSymmetricCrypto {
             // If the aesCipher object returned null w/o throwing any errors
             if(aesCipher == null)
                 return null;
+            
+            // Encrypt the contents of the file with the Key and IV pair. 
+            byte[] encrypted = aesCipher.doFinal(file);
 
-            // AES encrypted keyword
-            final byte[] encrypted = aesCipher.doFinal(file);
-
+            // Encode the Ek(file) into Base64 and return.
             return Base64.getEncoder().encodeToString(encrypted);
         } 
         catch(NoSuchAlgorithmException nae)
@@ -63,7 +64,9 @@ public class FileSymmetricCrypto {
             Logger.getLogger(Tokenizer.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IllegalBlockSizeException ex) {
             Logger.getLogger(Tokenizer.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        } catch (BadPaddingException ex) {
+            Logger.getLogger(Tokenizer.class.getName()).log(Level.SEVERE, null, ex);
+        } 
         
         return null;
     }
@@ -106,7 +109,9 @@ public class FileSymmetricCrypto {
             Logger.getLogger(Tokenizer.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IllegalBlockSizeException ex) {
             Logger.getLogger(Tokenizer.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        } catch (BadPaddingException ex) {
+            Logger.getLogger(Tokenizer.class.getName()).log(Level.SEVERE, null, ex);
+        } 
         
         return null;
     }

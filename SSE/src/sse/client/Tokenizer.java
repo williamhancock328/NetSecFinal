@@ -84,8 +84,7 @@ public class Tokenizer {
                                                 
                 // Add the hash to ret
                 ret.add(new Token(Base64.getEncoder().encode(encrypted)));
-            }
-            catch (IllegalBlockSizeException ex) {
+            } catch (IllegalBlockSizeException ex) {
                 Logger.getLogger(Tokenizer.class.getName()).log(Level.SEVERE, null, ex);
             } catch (BadPaddingException ex) {
                 Logger.getLogger(Tokenizer.class.getName()).log(Level.SEVERE, null, ex);
