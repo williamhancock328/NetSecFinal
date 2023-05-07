@@ -4,8 +4,11 @@ import java.io.FileNotFoundException;
 import java.io.InvalidObjectException;
 import java.security.Key;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.crypto.SecretKey;
+import sse.client.Tokenizer;
 import sse.files.Database;
 
 /**
@@ -41,29 +44,25 @@ public class SSE {
             throw new NullPointerException("Loading from a Null Database. \nIssue loading in the Database");
     }
     
-    public Token Token(Key secretKey, String keyword) {
-        return null;
+    public List<Token> Token(SecretKey secretKey, String Base64_IV, List<String> keywords) {
+        return Tokenizer.tokenize(keywords, secretKey, Base64_IV);
     }
     
-    public ArrayList<EncryptedDocument> Search (Token tk){
-        return null;
+    public List<EncryptedDocument>Search(Token tk){
+        return docCollection.Search(tk);
     }
     
-    public Token InsertToken(Key secretKey, String keyword) {
-        return null;
+    public EncryptedDocument Insert(List<Token> tks, EncryptedDocument doc){
+        return docCollection.Insert(tks, doc);
     }
 
-    public ArrayList<EncryptedDocument> Insert(Token tk){
-        return null;
-    }
+   // public Token DeleteToken(Key secretKey, int id) {
+   //     return null;
+   // }
 
-    public Token DeleteToken(Key secretKey, int id) {
-        return null;
-    }
-
-    public ArrayList<EncryptedDocument> Delete(Token dtk){
-        return null;
-    }
+   // public ArrayList<EncryptedDocument> Delete(Token dtk){
+   //     return null;
+   // }
 
     /**
      * Accessors

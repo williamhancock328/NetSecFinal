@@ -18,9 +18,9 @@ public class EncryptedDocument {
     * Construction constructor
     * @param encoded_file 
     */
-   public EncryptedDocument(String encoded_file, List<String> users) {
+   public EncryptedDocument(List<String> users) {
        this.ID = UUID.randomUUID().toString();
-       this.encoded_file = encoded_file;
+       //this.encoded_file = encoded_file;
    }
    
    /**
@@ -71,6 +71,13 @@ public class EncryptedDocument {
      */
     public List<String> getUsers() {
         return users;
+    }
+
+    /**
+     * @param encoded_file the encoded_file to set
+     */
+    public void setEncoded_file(String encoded_file) {
+        this.encoded_file = encoded_file;
     }
 
 }

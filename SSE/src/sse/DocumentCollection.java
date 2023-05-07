@@ -24,7 +24,17 @@ public class DocumentCollection {
      * Default Constructor
      */
     public DocumentCollection() {
-        
+        index_table = new HashMap<>();
+    }
+    
+    /**
+     * Inserts a pair of <{@code tokens},{@code doc}> into the index_table.
+     * @param tokens
+     * @param doc
+     * @return 
+     */
+    public EncryptedDocument Insert(List<Token> tokens, EncryptedDocument doc) {
+        return index_table.put(tokens, doc);
     }
     
     /**
@@ -76,7 +86,7 @@ public class DocumentCollection {
     
     /**
      * Constructs 
-     * 
+     * A list of entries for the Database
      * 
      */
     public List<Entry> toEntries() {
