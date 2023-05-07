@@ -157,9 +157,6 @@ public class CloudService {
                 case FileCreate: {
                     FileCreate FileCreate_packet = (FileCreate) packet;
                     
-                    // Construct a new UUID
-                    UUID uuid = UUID.randomUUID();
-
                     // Add the file too the TransportLayer                    
                 }
                 
