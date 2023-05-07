@@ -53,7 +53,7 @@ public class SSE {
         
     }
 
-    public ArrayList<EncryptedDocument> Insert (Token tk){
+    public ArrayList<EncryptedDocument> Insert(Token tk){
         
     }
 
@@ -61,7 +61,7 @@ public class SSE {
         
     }
 
-    public ArrayList<EncryptedDocument> Delete (Token dtk){
+    public ArrayList<EncryptedDocument> Delete(Token dtk){
         
     }
 

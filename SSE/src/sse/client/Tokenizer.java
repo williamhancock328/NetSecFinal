@@ -49,6 +49,7 @@ public class Tokenizer {
         IvParameterSpec IV = new IvParameterSpec(Base64.getDecoder().decode(Base64_IV));
         Cipher aesCipher = null;
         
+        // Init the AES cipher
         try {
             // Use AES in GCM mode. No padding is needed as
             // GCM is a streaming AEAD mode.
@@ -75,14 +76,14 @@ public class Tokenizer {
                 if(aesCipher == null)
                     return null;
                 
-                // AES encrypted keyword
-                final byte[] encrypted = aesCipher.doFinal(word.getBytes());
-                
                 // Hash the keyword
-                final String hash = hash(encrypted);
-                
+                final byte[] hash = hash(word.getBytes());
+
+                // AES encrypt hash
+                final byte[] encrypted = aesCipher.doFinal(hash);
+                                                
                 // Add the hash to ret
-                ret.add(new Token(hash));
+                ret.add(new Token(Base64.getEncoder().encode(encrypted)));
             }
             catch (IllegalBlockSizeException ex) {
                 Logger.getLogger(Tokenizer.class.getName()).log(Level.SEVERE, null, ex);
@@ -99,10 +100,10 @@ public class Tokenizer {
      * @param encrypted_keyword
      * @return 
      */
-    private static String hash(byte[] encrypted_keyword) throws NoSuchAlgorithmException {
+    private static byte[] hash(byte[] encrypted_keyword) throws NoSuchAlgorithmException {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] hashbytes = digest.digest(encrypted_keyword);
-        return Base64.getEncoder().encodeToString(hashbytes);
+        return hashbytes;
     }   
 
 }
