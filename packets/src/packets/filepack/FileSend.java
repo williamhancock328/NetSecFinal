@@ -81,7 +81,7 @@ public class FileSend implements Packet, JSONSerializable, Comparable<FileSend> 
             else
               throw new InvalidObjectException("Expected an FileSend object -- index expected.");
             if (tmp.containsKey("isfinal"))
-              this.isfinal = tmp.getBoolean("isfinal");
+                this.setIsfinal((boolean) tmp.getBoolean("isfinal"));
             else
               throw new InvalidObjectException("Expected an FileSend object -- isfinal expected.");
           }
@@ -165,6 +165,13 @@ public class FileSend implements Packet, JSONSerializable, Comparable<FileSend> 
     public boolean isIsfinal() {
         return isfinal;
     }
+    
+    /**
+     * @param isfinal the isfinal to set
+     */
+    public void setIsfinal(boolean isfinal) {
+        this.isfinal = isfinal;
+    }
 
     /**
      * CompareTo for FileSend object.
@@ -176,4 +183,5 @@ public class FileSend implements Packet, JSONSerializable, Comparable<FileSend> 
     public int compareTo(FileSend o) {
         return this.getIndex() == o.getIndex() ? 0 : (this.getIndex() > o.getIndex() ? 1 : -1 );
     }
+    
 }
