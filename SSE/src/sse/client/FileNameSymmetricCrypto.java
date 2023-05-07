@@ -17,7 +17,7 @@ import javax.crypto.spec.IvParameterSpec;
 import sse.Token;
 
 /**
- * Used for Encryption and Decryption of File Names.
+ * FileNameSymmetricCrypto Used for Encryption and Decryption of File Names.
  * @author Alex
  */
 public class FileNameSymmetricCrypto {
