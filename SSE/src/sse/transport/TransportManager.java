@@ -30,7 +30,12 @@ public class TransportManager {
     public TransportManager() {
         
     }
-    
+        
+    /**
+     * Called when receiving a FileSend packet, adjusts it to the transport_table
+     * @param ID
+     * @param packet 
+     */
     public void received(String ID, FileSend packet) {
         // Add FileSend to the list
         if(transport_table.containsKey(ID)) {
@@ -70,6 +75,15 @@ public class TransportManager {
         }
         
         return builder.toString();
+    }
+    
+    /**
+     * Breaks a encoded_file (Base64 of a file [could be encrypted or not]) into multiple
+     * FileSend packets if necessary
+     * @return 
+     */
+    public List<FileSend> fromEncodedFile(String encoded_file) {
+        
     }
     
     /**

@@ -39,7 +39,17 @@ public class SecretKeyGenerator {
         SecretKeyFactory factory = SecretKeyFactory.getInstance("SCRYPT");
 
         // Get a 16-byte IV for an AES key if it does not exist.
-        byte[] salt = password.getBytes(StandardCharsets.UTF_8);
+        byte[] salt = new byte[16];
+        byte[] password_bytes = password.getBytes(StandardCharsets.UTF_8);
+        
+        if(password_bytes.length < 16)
+            throw new InvalidKeySpecException("We must require that the password_bytes array be at least 16 bytes so we can do Symtetic Encryption.");
+        
+        // Move 16 of the password_bytes to the salt
+        for(int i = 0; i < salt.length; i++) {
+            salt[i] = password_bytes[i];
+        }
+        
         // WHATEVER THIS IS, IT NEEDS TO BE STORED AND SENT FOR DECRYPTION (GETTER OR SUM IDC)!!!
 
         // Derive an AES key from the password using the password. The memory
