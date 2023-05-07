@@ -1,0 +1,7 @@
+{
+  "port" : 5001,
+  "debug" : false,
+  "service-name" : "cloudservice",
+  "service-secret" : "servicepass",
+  "db_loc": "database.json"
+}
