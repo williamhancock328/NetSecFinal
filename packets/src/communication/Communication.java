@@ -152,6 +152,7 @@ public class Communication {
             case FileCreate: return new FileCreate(line, packetType);
             case FileReceived: return new FileReceived(line, packetType);
             case FileSearchRequest: return new FileSearchRequest(line, packetType);
+            case FileSearchSendRequest: return new FileSearchSendRequest(line, packetType);
             case FileSearchResponse: return new FileSearchResponse(line, packetType);
             case FileSend: return new FileSend(line, packetType);
             case SessionKeyPackets: return new SessionKeyPackets(line, packetType);

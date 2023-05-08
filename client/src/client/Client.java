@@ -34,6 +34,7 @@ import packets.abstractpk.SessionKeyPackets;
 import packets.filepack.FileCreate;
 import packets.filepack.FileReceived;
 import packets.filepack.FileSearchRequest;
+import packets.filepack.FileSearchResponse;
 import packets.filepack.FileSend;
 import sse.Token;
 import sse.client.FileNameSymmetricCrypto;
@@ -527,9 +528,17 @@ public class Client {
                
                // 3. Send a FileSearchRequest
                FileSearchRequest fileSearchRequest = new FileSearchRequest(tokens_strings, user);
+               SSLSocket send_out = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), fileSearchRequest); // Send the packet
+               FileSearchResponse fileSearchResponse_packet = (FileSearchResponse) Communication.read(send_out); // Receive the fileReceived packet
+                
+               // No files have been found with the associating keywords, or you were not permitted to access a file.
+               if(!fileSearchResponse_packet.isAccessed())  {
+                   System.out.println("No files have been found with the associating keywords, or you were not permitted to access a file.");
+                   break;
+               } 
                
-                
-                
+               
+               
 //            // Get fresh nonce E for MSG
 //            byte[] nonceEBytes = nc.getNonce();
 //            //Add nonceE to nonce cache
