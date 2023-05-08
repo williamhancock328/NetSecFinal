@@ -66,8 +66,6 @@ public class TransportManager {
         
         // Sort the collection
         Collections.sort(ref);
-        // Reverse ref so that the first index is 0 and the last is the heighst.
-        Collections.reverse(ref);
         
         // Collect all of the file bits into the builder, in order (0-n).
         for(int i = 0; i < ref.size(); i++) {
@@ -102,6 +100,8 @@ public class TransportManager {
         
         // Get the last element of ret, and set isfinal to true.
         ret.get(ret.size()-1).setIsfinal(true);
+        
+        System.out.println( "size: " + ret.size() + " " + (ret.get(ret.size()-1).isIsfinal()) );
         
         return ret;
     }

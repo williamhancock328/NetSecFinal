@@ -403,14 +403,14 @@ public class Client {
                     String encoded = Base64.getEncoder().encodeToString(fileCreate.serialize().getBytes());                    
                     byte[] bytePacket = Base64.getDecoder().decode(encoded);
                     
-                    System.out.println("Byte packet pre encryption:" + encoded);
+                    //System.out.println("Byte packet pre encryption:" + encoded);
                     
                     // Encrypt file create with session key here
                     byte[] encPacket = ClientSessionKeyEncryption.encrypt(sessionKeyClient, bytePacket, user, service);
                     
                     
                     String StringEncPacket = Base64.getEncoder().encodeToString(encPacket);
-                     System.out.println("enc pkt: " + StringEncPacket);
+                    //System.out.println("enc pkt: " + StringEncPacket);
                     byte[] rawIV = ClientSessionKeyEncryption.getRawIv();
                     String StringRawIV = Base64.getEncoder().encodeToString(rawIV);
                     byte[] EncNonce = ClientSessionKeyEncryption.encrypt(sessionKeyClient, nonceDBytes, user, service);
@@ -418,9 +418,8 @@ public class Client {
                     
                     SessionKeyPackets SessionKeyPacket_packet = new SessionKeyPackets(StringRawIV, StringEncNonce, StringEncPacket, user);
                     SSLSocket out = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), SessionKeyPacket_packet); // Send the packet
-                    
                     FileReceived fileReceived = (FileReceived) Communication.read(out); // Receive the fileReceived packet
-                    
+                                        
                     // 6. Initilialize the FileSend stream.
                     List<FileSend> fileSends = transportManager.fromEncodedFile(fileReceived.getFileID(), encoded_file);
                     

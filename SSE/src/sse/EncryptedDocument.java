@@ -12,7 +12,7 @@ public class EncryptedDocument {
     
    private String ID;
    private String encrypted_filename;
-   private String encoded_file;
+   private String encoded_file = "";
    private List<String> users; // List of users who have access too the file (usernames)
    
    /**

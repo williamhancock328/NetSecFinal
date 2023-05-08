@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InvalidObjectException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -76,11 +77,18 @@ public class Database implements JSONSerializable {
     @Override
     public JSONType toJSONType() {
         JSONObject obj = new JSONObject();
-        JSONArray entries = new JSONArray();
         
-        entries.addAll(sse.SSE.getDocCollection().toEntries());
-        
-        obj.put("entries", entries); // Assign the entries array.
+        ArrayList<JSONType> secretList = new ArrayList<>();
+        List<Entry> entry_list = sse.SSE.getDocCollection().toEntries();
+
+        for (Entry s : entry_list)
+        {
+            secretList.add(s.toJSONType());
+        }
+
+        System.out.println("Entry List Size: " + entry_list.size());
+       
+        obj.put("entries", new JSONArray(secretList)); // Assign the entries array.
         return obj; // We are never reading this file to JSON.
     }
     
@@ -89,7 +97,7 @@ public class Database implements JSONSerializable {
      */
     public void update() {
         try
-        { 
+        {      
          BufferedWriter writer = new BufferedWriter(new FileWriter(new File(path)));
          writer.write(serialize());
          writer.close();

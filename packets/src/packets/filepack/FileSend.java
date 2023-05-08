@@ -73,7 +73,7 @@ public class FileSend implements Packet, JSONSerializable, Comparable<FileSend> 
           {
             tmp = (JSONObject)obj;
             if (tmp.containsKey("ID"))
-              this.file_bit = tmp.getString("ID");
+              this.ID = tmp.getString("ID");
             else
               throw new InvalidObjectException("Expected an FileSend object -- ID expected.");
             if (tmp.containsKey("file_bit"))

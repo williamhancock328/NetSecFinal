@@ -46,6 +46,8 @@ public class SSE {
         
         if(database == null)
             throw new NullPointerException("Loading from a Null Database. \nIssue loading in the Database");
+        
+        System.out.println("Number of EncryptedDocuments: " + docCollection.size());
     }
     
     public List<Token> Token(SecretKey secretKey, String Base64_IV, List<String> keywords) {
@@ -65,7 +67,7 @@ public class SSE {
      * @param uuid
      * @return 
      */
-    public EncryptedDocument Search(UUID uuid) {
+    public EncryptedDocument Search(String uuid) {
         return docCollection.Search(uuid); // Finds the EncryptedDocument
     }
     

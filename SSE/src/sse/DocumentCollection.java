@@ -110,9 +110,25 @@ public class DocumentCollection {
      * @param uuid
      * @return 
      */
-    public EncryptedDocument Search(UUID uuid) {
-        String ID = uuid.toString();
-        return index_table.values().stream().filter(n -> n.getID().equalsIgnoreCase(ID)).findFirst().orElse(null);
+    public EncryptedDocument Search(String uuid) {
+        
+        // Loop through every doccument
+        for(EncryptedDocument doc : index_table.values()) {
+            System.out.println(uuid);
+            System.out.println(doc.getID());
+            if(doc.getID().equalsIgnoreCase(uuid))
+                return doc;
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Number of EncryptedDocuements.
+     * @return 
+     */
+    public int size() {
+        return index_table.size();
     }
     
     

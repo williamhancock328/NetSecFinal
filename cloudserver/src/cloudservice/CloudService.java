@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -164,7 +163,7 @@ public class CloudService {
                 String iv = SessionKeyPackets_packet.getIv();
                 String user = SessionKeyPackets_packet.getUser();
 
-                System.out.println("enc pkt: " + encPacket);
+                //System.out.println("enc pkt: " + encPacket);
                
                 byte[] decPacket = EchoSessionKeyDecryption.decrypt(encPacket, iv, user, serverSidesessionKey);
                 // Decode the decrypted packet from Base64
@@ -172,8 +171,7 @@ public class CloudService {
                 // Reconstruct the FileCreate object using the decoded bytes
                 String decrypted_packet = new String(decPacket);
                 
-                
-                System.out.println("dec pkt HERE " + decrypted_packet);
+                //System.out.println("dec pkt HERE " + decrypted_packet);
    
                 JSONObject object = JsonIO.readObject(decrypted_packet); // All packets are type JSON object with identifier "packetType"
                 String identifier = object.getString("packetType");
@@ -227,11 +225,19 @@ public class CloudService {
                 case FileSend: {
                     FileSend FileSend_packet = (FileSend) packet;
                     
+                    System.out.println("ID: "+ FileSend_packet.getID());
+                    
+                    // Add the packet as received
+                    transportManager.received(FileSend_packet);
+                    
                     // If this is the last packet, build the encoded_file and add it to the document with {@code ID}
                     if(FileSend_packet.isIsfinal()) {
                         
                         // Find the existing EncryptedDocument
-                        EncryptedDocument eDocument = SSE.Search(UUID.fromString(FileSend_packet.getID()));
+                        EncryptedDocument eDocument = SSE.Search(FileSend_packet.getID());
+                        
+                        if(eDocument == null)
+                            throw new NullPointerException("EncryptedDocument isn't working.");
                         
                         // Build the encoded_file.
                         String encoded_file = transportManager.toEncodedFile(FileSend_packet.getID());
@@ -239,22 +245,16 @@ public class CloudService {
                         // Assign the encoded_file to eDocument
                         eDocument.setEncoded_file(encoded_file);
                         
+                        System.out.println("file: " + eDocument.getEncoded_file());
+                        
+                        System.out.println("Updated DB");
                         // Update the document Database
                         SSE.updateDB();
-                        
-                        // Return a FileReceived Packet
-                        FileReceived fileReceived_Packet = new FileReceived(true, eDocument.getID(), eDocument.getEncrypted_filename());
-                        Communication.send(peer, fileReceived_Packet);
                     } 
+                    
                     // If this is not the last packet, add it to the TransportManager
-                    else {
-                        // Add the packet as received
-                        transportManager.received(FileSend_packet);
-                        
-                        // Return a FileReceived Packet
-                        FileReceived fileReceived_Packet = new FileReceived(true, FileSend_packet.getID(), "");
-                        Communication.send(peer, fileReceived_Packet);
-                    }
+                    FileReceived fileReceived_Packet = new FileReceived(true, FileSend_packet.getID(), "");
+                    Communication.send(peer, fileReceived_Packet);
                 }; break;
                 
                 
