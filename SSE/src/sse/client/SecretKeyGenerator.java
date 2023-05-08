@@ -63,7 +63,7 @@ public class SecretKeyGenerator {
         // Generate the secrete key.
         SecretKey tmp = factory.generateSecret(scryptSpec);
         SecretKey key = new SecretKeySpec(tmp.getEncoded(), "AES");
-        return new Tuple(key, Base64.getEncoder().encodeToString(salt));
+        return new Tuple<SecretKey, String>(key, Base64.getEncoder().encodeToString(salt));
     }
     
     /**
