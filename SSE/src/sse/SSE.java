@@ -73,7 +73,7 @@ public class SSE {
      * Updates the Database
      */
     public void updateDB() {
-        
+        this.database.update(); // save the database.
     }
     
    // public Token DeleteToken(Key secretKey, int id) {

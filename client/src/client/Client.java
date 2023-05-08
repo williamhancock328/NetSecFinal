@@ -356,20 +356,10 @@ public class Client {
 
                     //File password
                     filePass = new String(console.readPassword("Create a file password: "));
-                            
-                    // Construct the KeyPair <SecretKey, IV> for encryption of the keywords and file.
                     
-                    
-                    //SAVE ENCRYPTED FILE PASSWORD ?????
-                    //Key derived from file pass, this uses the user's desired file pass AND their username 
-                    //SecretKey fileKey = scrypt.genKey(filePass, user);
-                    //byte[] fileKeyBytes = fileKey.getEncoded(); //byte interpretation of key
-                    //String fileKeyBase64 = Base64.getEncoder().encodeToString(fileKeyBytes);
-                    //System.out.println(fileKeyBase64); //String interpreation of file key
-
                     //TO-DO: Encrypt file contents with file key
                     //Keywords used to associate a file with (searchable encryptin)
-                    System.out.println("Create associated key words: ");
+                    System.out.println("Enter associated key words, seperate with spaces: ");
                     String keywords = scanner2.nextLine();
                     String[] strings = keywords.split(" ");
                     ArrayList<String> keywordList = new ArrayList<>(Arrays.asList(strings));
@@ -379,7 +369,6 @@ public class Client {
                     String users = scanner2.nextLine();
                     String[] users_strings = users.split(" ");
                     ArrayList<String> usersList = new ArrayList<>(Arrays.asList(users_strings));
-                    
                     
                     // Assure there exists keywords
                     if(keywordList.isEmpty())
@@ -392,7 +381,7 @@ public class Client {
                     SecretKey fpKey = fp_pair.getFirst();
                     String fpIV = fp_pair.getSecond();
                     
-                    // 2. Conver the Keywords into Tokens w/ Sym. Encryption.
+                    // 2. Convert the Keywords into Tokens w/ Sym. Encryption.
                     List<Token> tokens = Tokenizer.tokenize(keywordList, fpKey, fpIV);
                     List<String> tokens_strings = tokens.stream().map(n -> n.getValue()).collect(Collectors.toList());
                     
@@ -498,50 +487,77 @@ public class Client {
             // Request Files
             case 2:
 
-                // Get fresh nonce E for MSG
-                byte[] nonceEBytes = nc.getNonce();
-                //Add nonceE to nonce cache
-                nc.addNonce(nonceEBytes);
+               //File password
+               filePass = new String(console.readPassword("Please enter keywords seperated by spaces to search: "));
+                    
+               //TO-DO: Encrypt file contents with file key
+               //Keywords used to associate a file with (searchable encryptin)
+               System.out.println("Create associated key words: ");
+               String keywords = scanner2.nextLine();
+               String[] strings = keywords.split(" ");
+               ArrayList<String> keywordList = new ArrayList<>(Arrays.asList(strings));
+                
+               // Assure there exists keywords
+               if(keywordList.isEmpty())
+                    throw new IllegalArgumentException("Keywords must be present for the SEE in the cloud-service.");
 
-                //File keywords to be requested
-                System.out.println("Enter key words. Please seperate each one with a comma");
-                String keywords = scanner2.nextLine();
-                String[] strings = keywords.split(" ");
-                ArrayList<String> keywordList = new ArrayList<>(Arrays.asList(strings));
+               // Starting SSE code here - Alex
 
-                // Encode the key word list
-                String encoded = Base64.getEncoder().encodeToString(keywordList.toString().getBytes());
-                //System.out.println("Encoded: " + encoded);
-
-                // Decode the key word to a byte[]
-                byte[] decodedBytes = Base64.getDecoder().decode(encoded);
-                String decodedString = new String(decodedBytes);
-                //System.out.println("Decoded: " + decodedString);
-
-                //Encrypt the key words
-                byte[] EncKeyWords = ClientSessionKeyEncryption.encrypt(sessionKeyClient, decodedBytes, user, service);
-                String StringEncKeyWords = Base64.getEncoder().encodeToString(EncKeyWords);
-                //System.out.println("Client side enc. keywords: " + StringEncKeyWords);
-
-                // IV used in key word encryption
-                byte[] iv = ClientSessionKeyEncryption.getRawIv();
-                String stringIV = Base64.getEncoder().encodeToString(iv);
-                //System.out.println(stringIV);
-
-                //Encrypt the nonce
-                byte[] EncNonce = ClientSessionKeyEncryption.encrypt(sessionKeyClient, nonceEBytes, user, service);
-                String StringEncNonce = Base64.getEncoder().encodeToString(EncNonce);
-                //System.out.println("Client side enc. nonce: " + StringEncNonce);
-                //System.out.println("OG nonce " + Base64.getEncoder().encodeToString(nonceEBytes));
-
-                // IV used in nonce encryption
-                byte[] iv2 = ClientSessionKeyEncryption.getRawIv();
-                String stringIV2 = Base64.getEncoder().encodeToString(iv2);
-                //System.out.println(stringIV2);
-
-                // MESSAGE 1: Client sends KeyWords for file send
-                KeyWordSend sendKeyWords = new KeyWordSend(StringEncKeyWords, StringEncNonce, stringIV, user, stringIV2); // Construct the packet
-                SSLSocket out = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), sendKeyWords); // Send the packet
+               // 1. Construct the FP_Key and FP_IV
+               Tuple<SecretKey, String> fp_pair = SecretKeyGenerator.genKey(filePass);
+               SecretKey fpKey = fp_pair.getFirst();
+               String fpIV = fp_pair.getSecond();
+               
+               // 2. Convert the Keywords into Tokens w/ Sym. Encryption.
+               List<Token> tokens = Tokenizer.tokenize(keywordList, fpKey, fpIV);
+               List<String> tokens_strings = tokens.stream().map(n -> n.getValue()).collect(Collectors.toList());
+               
+                
+                
+//            // Get fresh nonce E for MSG
+//            byte[] nonceEBytes = nc.getNonce();
+//            //Add nonceE to nonce cache
+//            nc.addNonce(nonceEBytes);
+//
+//            //File keywords to be requested
+//            System.out.println("Enter key words. Please seperate each one with a comma");
+//            String keywords = scanner2.nextLine();
+//            String[] strings = keywords.split(" ");
+//            ArrayList<String> keywordList = new ArrayList<>(Arrays.asList(strings));
+//
+//            // Encode the key word list
+//            String encoded = Base64.getEncoder().encodeToString(keywordList.toString().getBytes());
+//            //System.out.println("Encoded: " + encoded);
+//
+//            // Decode the key word to a byte[]
+//            byte[] decodedBytes = Base64.getDecoder().decode(encoded);
+//            String decodedString = new String(decodedBytes);
+//            //System.out.println("Decoded: " + decodedString);
+//
+//            //Encrypt the key words
+//            byte[] EncKeyWords = ClientSessionKeyEncryption.encrypt(sessionKeyClient, decodedBytes, user, service);
+//            String StringEncKeyWords = Base64.getEncoder().encodeToString(EncKeyWords);
+//            //System.out.println("Client side enc. keywords: " + StringEncKeyWords);
+//
+//            // IV used in key word encryption
+//            byte[] iv = ClientSessionKeyEncryption.getRawIv();
+//            String stringIV = Base64.getEncoder().encodeToString(iv);
+//            //System.out.println(stringIV);
+//
+//            //Encrypt the nonce
+//            byte[] EncNonce = ClientSessionKeyEncryption.encrypt(sessionKeyClient, nonceEBytes, user, service);
+//            String StringEncNonce = Base64.getEncoder().encodeToString(EncNonce);
+//            //System.out.println("Client side enc. nonce: " + StringEncNonce);
+//            //System.out.println("OG nonce " + Base64.getEncoder().encodeToString(nonceEBytes));
+//
+//            // IV used in nonce encryption
+//            byte[] iv2 = ClientSessionKeyEncryption.getRawIv();
+//            String stringIV2 = Base64.getEncoder().encodeToString(iv2);
+//            //System.out.println(stringIV2);
+//
+//            // MESSAGE 1: Client sends KeyWords for file send
+//            KeyWordSend sendKeyWords = new KeyWordSend(StringEncKeyWords, StringEncNonce, stringIV, user, stringIV2); // Construct the packet
+//            SSLSocket out = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), sendKeyWords); // Send the packet
 
                 break;
             //Exit

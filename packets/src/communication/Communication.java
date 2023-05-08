@@ -124,12 +124,9 @@ public class Communication {
         // Switch over all of the packet types
         // Using a switch statement to avoid reflection
         switch (packetType) {
-            case AuthRequest:
-                return new AuthRequest(line, packetType);
-            case EnrollRequest:
-                return new EnrollRequest(line, packetType);
-            case ServerResponse:
-                return new ServerResponse(line, packetType);
+            case AuthRequest: return new AuthRequest(line, packetType);
+            case EnrollRequest: return new EnrollRequest(line, packetType);
+            case ServerResponse: return new ServerResponse(line, packetType);
             case SessionKeyRequest: return new SessionKeyRequest(line, packetType);
             case SessionKeyResponse: return new SessionKeyResponse(line, packetType);
             case ClientHello: return new ClientHello(line, packetType); 

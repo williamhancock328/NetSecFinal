@@ -30,6 +30,7 @@ public class Database implements JSONSerializable {
         if(file == null || !file.exists()) {
             //throw new FileNotFoundException("File from path for EchoServiceConfig does not point to a vadlid configuration json file.");
             file.createNewFile(); // Construct a new file and add nothing to the documents database
+            update();
             return;
         }
         
