@@ -30,18 +30,7 @@ Note**: Nonces are generated and checked for every message
 		- Upon Cloud File Request:
 			- Cloud decrypts string arraylist and nonce, printed out to screen to verify
 
-Here's what's missing and needs to be done:
-	1. Creating/Authenticating user has one issue. Create updates passwd.json but authn uses passwd.json & secrets.json.
-	   I find secrets.json to not be necessary and very insecure since it stores p.t. passwords with usernames. The auth
-	   should ONLY check passwd.json. 
-	2. Data entered by users during file send are not handled/stored. This can possibly be accomplished in a similar fashion
-	   to how passwd.json is setup. The data I am talking about here is: File Password, File Key, and Key Words.
-	3. Keywords need to be hashed before encrypted and send.
-	4. Once the file path is specified, client needs to encrypt with the file password derived key as well as session key and send it fragmented.
-	   How you want to associate the seperately sent keywords with the file is up in the air. They can remain seperate a.k.a one after another 
-           or send keywords with file in the same packet.
-	5. After setting up sending data, searchable encryption must take place. This means the packet (which is already set up) sent to the server
-           during this protocol can be verified. Verfiying means, checking if the the HASHED keywords sent by the user match what the cloud has for some file.
-           Once verified, the cloud sends the encrypted file to user in fragments. From here, user needs to decrypt by entering the file password as well as the
-           username it belongs to inorder to derive the proper key thereof. Once decrypted, allow user to specify a directory where the wish to save the file.
-           At this point, we should be done. 
+To run:
+Build the classes with NetBeans
+Then the client and servers can be started with the batch files located in the root directory
+Use FreeOTP to generate a QR code from the base 32 key. Ensure that it is set to SHA1 timeout with 6 digits.
