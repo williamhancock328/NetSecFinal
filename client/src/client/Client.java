@@ -369,6 +369,10 @@ public class Client {
                     String users = scanner2.nextLine();
                     String[] users_strings = users.split(" ");
                     ArrayList<String> usersList = new ArrayList<>(Arrays.asList(users_strings));
+                    if(!usersList.contains(user)) { // If this user is not in usersList
+                        usersList.add(user);
+                    }
+                    
                     
                     // Assure there exists keywords
                     if(keywordList.isEmpty())
