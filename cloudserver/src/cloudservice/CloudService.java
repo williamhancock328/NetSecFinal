@@ -248,7 +248,7 @@ public class CloudService {
                         // Add the packet as received
                         transportManager.received(FileSend_packet);
                     }
-                }
+                }; break;
                 
                 
                 
@@ -292,8 +292,8 @@ public class CloudService {
                     // Create the packet and send
                     ServerHello ServerHello_packet = new ServerHello(nonceSString, serviceName, Base64.getEncoder().encodeToString(EchoSessionKeyEncryption.getRawIv()), Base64.getEncoder().encodeToString(EncNonceC));
                     Communication.send(peer, ServerHello_packet);
-                }
-                break;
+                } break;
+                
                 // Client Response package
                 case ClientResponse: {
                     //MESSAGE 4: Received client response, let's check nonce validity and give a status
@@ -315,13 +315,8 @@ public class CloudService {
 
                     }
 
-                }
-                ;
-                break;
+                }; break;
 
-                
-                
-                
                 //Cloud Server receives key words to add to new file
                 case KeyWordSend: {
                     KeyWordSend KeyWordSend_packet = (KeyWordSend) packet;
@@ -361,9 +356,7 @@ public class CloudService {
                         System.out.println("Replay attack detected");
                         System.exit(0);
                     }
-                }
-                ;
-                break;
+                }; break;
 
                 //Cloud server receives key words to search new file
                 case KeyWordRequest: {
@@ -404,9 +397,7 @@ public class CloudService {
                         System.out.println("Replay attack detected");
                         System.exit(0);
                     }
-                }
-                ;
-                break;
+                }; break;
 
             }
         }
