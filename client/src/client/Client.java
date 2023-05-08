@@ -403,7 +403,7 @@ public class Client {
                     String encoded = Base64.getEncoder().encodeToString(fileCreate.serialize().getBytes());                    
                     byte[] bytePacket = Base64.getDecoder().decode(encoded);
                     
-                    System.out.println("Byte packet pre encryption:" + encoded);
+                    //System.out.println("Byte packet pre encryption:" + encoded);
                     
                     // Encrypt file create with session key here
                     byte[] encPacket = ClientSessionKeyEncryption.encrypt(sessionKeyClient, bytePacket, user, service);
@@ -430,6 +430,8 @@ public class Client {
                         // Encode keywords
                         String encoded2 = Base64.getEncoder().encodeToString(packet.serialize().getBytes());
                         byte[] bytePacket2 = Base64.getDecoder().decode(encoded2);
+                        
+                        System.out.println("Byte packet pre encryption:" + encoded2);
                         
                         //Encrypt file create with session key here
                         byte[] encPacket2 = ClientSessionKeyEncryption.encrypt(sessionKeyClient, bytePacket2, user, service);
