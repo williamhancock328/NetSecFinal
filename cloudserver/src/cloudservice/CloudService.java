@@ -17,6 +17,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -45,6 +46,8 @@ import packets.Ticket;
 import packets.abstractpk.SessionKeyPackets;
 import packets.filepack.FileCreate;
 import packets.filepack.FileReceived;
+import packets.filepack.FileSearchRequest;
+import packets.filepack.FileSearchResponse;
 import packets.filepack.FileSend;
 import sse.EncryptedDocument;
 import sse.SSE;
@@ -186,6 +189,47 @@ public class CloudService {
             // Switch statement only goes over packets expected by the KDC, any other packet will be ignored.
             switch (packet.getType()) {
 
+                case FileSearchRequest: {
+                    
+                    FileSearchRequest fileSearchRequest = (FileSearchRequest) packet;
+                    
+                    List<EncryptedDocument> eDocs = new ArrayList<>();
+                    // Look for a document with the associating Tokens
+                    for(String keyword : fileSearchRequest.getKeywords()) {
+                        Token token = new Token(keyword);
+                        
+                        // Find all the EncryptedDocuments with a token
+                        // Add to eDocs array
+                        eDocs.addAll(SSE.Search(token));
+                    }
+                    
+                    boolean accessed = false;
+                    
+                    // If eDocs is empty, return accessed false
+                    if(eDocs.isEmpty()) {
+                        FileSearchResponse fileSearchResponse = new FileSearchResponse(false, "", "");
+                        Communication.send(peer, fileSearchResponse);
+                        break;
+                    } 
+                    // Else Loop through all of the eDocs, if any users match, return the file, else return failed response
+                    else {
+                        for(EncryptedDocument doc : eDocs) {
+                            if(doc.getUsers().contains(fileSearchRequest.getUsername())) {
+                                FileSearchResponse fileSearchResponse = new FileSearchResponse(true, doc.getID(), doc.getEncrypted_filename());
+                                Communication.send(peer, fileSearchResponse);
+                                accessed = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if(!accessed) {
+                        FileSearchResponse fileSearchResponse = new FileSearchResponse(false, "", "");
+                        Communication.send(peer, fileSearchResponse);
+                    }
+                    
+                }; break;
+                
                 case FileCreate: {
                     
 //                    //System.out.println("Server side enc. keywords:" + ctKeywords);

@@ -33,6 +33,7 @@ import merrimackutil.util.Tuple;
 import packets.abstractpk.SessionKeyPackets;
 import packets.filepack.FileCreate;
 import packets.filepack.FileReceived;
+import packets.filepack.FileSearchRequest;
 import packets.filepack.FileSend;
 import sse.Token;
 import sse.client.FileNameSymmetricCrypto;
@@ -337,14 +338,14 @@ public class Client {
         Host hostt = getHost("cloudservice");
         switch (input) {
             //Sending files
-            case 1:
+            case 1: {
                 // Get fresh nonce D for MSG
                 byte[] nonceDBytes = nc.getNonce();
                 //Add nonceD to nonce cache
                 nc.addNonce(nonceDBytes);
 
                 //File location
-                System.out.println("Enter location of file you wish to send:");
+                System.out.println("Enter location of file you wish to send, Please keep the file size too under 50KB:");
                 String fileLocation = scanner2.nextLine();
                 Path path = Paths.get(fileLocation);
                 boolean exists = Files.exists(path);
@@ -490,25 +491,29 @@ public class Client {
                     System.out.println("The file path is invalid.");
                     break;
                 }
-                break;
+            }; break;
 
             // Request Files
-            case 2:
-
-               //File password
-               filePass = new String(console.readPassword("Please enter keywords seperated by spaces to search: "));
-                    
+            case 2: {
+                
                //TO-DO: Encrypt file contents with file key
                //Keywords used to associate a file with (searchable encryptin)
                System.out.println("Create associated key words: ");
                String keywords = scanner2.nextLine();
                String[] strings = keywords.split(" ");
                ArrayList<String> keywordList = new ArrayList<>(Arrays.asList(strings));
-                
+               
                // Assure there exists keywords
                if(keywordList.isEmpty())
                     throw new IllegalArgumentException("Keywords must be present for the SEE in the cloud-service.");
-
+               
+               //File password
+               filePass = new String(console.readPassword("Please enter your file password: "));
+                    
+               //File location
+               System.out.println("Please enter the path where you would like your file to be saved: ");
+               String fileLocation = scanner2.nextLine();
+               Path path = Paths.get(fileLocation);               
                // Starting SSE code here - Alex
 
                // 1. Construct the FP_Key and FP_IV
@@ -519,6 +524,9 @@ public class Client {
                // 2. Convert the Keywords into Tokens w/ Sym. Encryption.
                List<Token> tokens = Tokenizer.tokenize(keywordList, fpKey, fpIV);
                List<String> tokens_strings = tokens.stream().map(n -> n.getValue()).collect(Collectors.toList());
+               
+               // 3. Send a FileSearchRequest
+               FileSearchRequest fileSearchRequest = new FileSearchRequest(tokens_strings, user);
                
                 
                 
@@ -567,11 +575,12 @@ public class Client {
 //            KeyWordSend sendKeyWords = new KeyWordSend(StringEncKeyWords, StringEncNonce, stringIV, user, stringIV2); // Construct the packet
 //            SSLSocket out = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), sendKeyWords); // Send the packet
 
-                break;
+            }; break;
+            
             //Exit
-            case 3:
+            case 3: {
                 System.exit(0);
-                break;
+            }; break;
             default:
                 System.out.println("Invalid input.");
                 break;
