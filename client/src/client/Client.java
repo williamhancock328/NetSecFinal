@@ -400,13 +400,13 @@ public class Client {
                     FileCreate fileCreate = new FileCreate(encrypted_filename, usersList, tokens_strings);
                     
                     // Encode the file 
-                    String encoded = Base64.getEncoder().encodeToString(fileCreate.toString().getBytes());                    
+                    String encoded = Base64.getEncoder().encodeToString(fileCreate.serialize().getBytes());                    
                     byte[] bytePacket = Base64.getDecoder().decode(encoded);
                     
                     System.out.println("Byte packet pre encryption:" + encoded);
                     
                     // Encrypt file create with session key here
-                    byte[] encPacket = ClientSessionKeyEncryption.encrypt(sessionKeyClient, bytePacket, user, service);
+                    byte[] encPacket = ClientSessionKeyEncryption.encrypt(fileCreate.serialize().getBytes(), bytePacket, user, service);
                     
                     
                     String StringEncPacket = Base64.getEncoder().encodeToString(encPacket);
@@ -427,7 +427,7 @@ public class Client {
                         FileSend packet = fileSends.get(i); // Get the next packet
                         
                         // Encode keywords
-                        String encoded2 = Base64.getEncoder().encodeToString(packet.toString().getBytes());
+                        String encoded2 = Base64.getEncoder().encodeToString(packet.serialize().getBytes());
                         byte[] bytePacket2 = Base64.getDecoder().decode(encoded2);
                         
                         //Encrypt file create with session key here
