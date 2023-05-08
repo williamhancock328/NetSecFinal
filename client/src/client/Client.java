@@ -410,6 +410,7 @@ public class Client {
                     
                     
                     String StringEncPacket = Base64.getEncoder().encodeToString(encPacket);
+                     System.out.println("enc pkt: " + StringEncPacket);
                     byte[] rawIV = ClientSessionKeyEncryption.getRawIv();
                     String StringRawIV = Base64.getEncoder().encodeToString(rawIV);
                     byte[] EncNonce = ClientSessionKeyEncryption.encrypt(sessionKeyClient, nonceDBytes, user, service);

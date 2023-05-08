@@ -10,6 +10,7 @@ import java.io.FileNotFoundException;
 import java.net.Socket;
 import java.io.IOException;
 import java.io.InvalidObjectException;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -164,13 +165,16 @@ public class CloudService {
                 String iv = SessionKeyPackets_packet.getIv();
                 String user = SessionKeyPackets_packet.getUser();
 
+                System.out.println("enc pkt: " + encPacket);
+               
                 byte[] decPacket = EchoSessionKeyDecryption.decrypt(encPacket, iv, user, serverSidesessionKey);
                 // Decode the decrypted packet from Base64
-                byte[] decodedBytes = Base64.getDecoder().decode(decPacket);
+            
                 // Reconstruct the FileCreate object using the decoded bytes
-                String decrypted_packet = new String(decodedBytes);
+                String decrypted_packet = Base64.getEncoder().encodeToString(decPacket);
                 
-                System.out.println(decrypted_packet);
+                
+                System.out.println("dec pkt HERE " + decrypted_packet);
    
                 JSONObject object = JsonIO.readObject(decrypted_packet); // All packets are type JSON object with identifier "packetType"
                 String identifier = object.getString("packetType");
