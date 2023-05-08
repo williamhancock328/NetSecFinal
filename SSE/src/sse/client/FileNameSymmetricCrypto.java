@@ -95,7 +95,7 @@ public class FileNameSymmetricCrypto {
             // Decrypt the cipher text
             byte[] decrypted = aesCipher.doFinal(decoded_cipher_text);
 
-            return Base64.getEncoder().encodeToString(decrypted);
+            return new String(decrypted);
         } 
         catch(NoSuchAlgorithmException nae)
         {

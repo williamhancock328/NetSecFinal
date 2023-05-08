@@ -17,6 +17,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -41,6 +42,7 @@ import packets.KeyWordRequest;
 import packets.KeyWordSend;
 import packets.PacketType;
 import static packets.PacketType.ClientHello;
+import static packets.PacketType.FileSearchSendRequest;
 import packets.ServerHello;
 import packets.Ticket;
 import packets.abstractpk.SessionKeyPackets;
@@ -48,6 +50,7 @@ import packets.filepack.FileCreate;
 import packets.filepack.FileReceived;
 import packets.filepack.FileSearchRequest;
 import packets.filepack.FileSearchResponse;
+import packets.filepack.FileSearchSendRequest;
 import packets.filepack.FileSend;
 import sse.EncryptedDocument;
 import sse.SSE;
@@ -136,6 +139,9 @@ public class CloudService {
         }
     }
 
+    // Maps the ID of a document to a list of file sends for the FileSearchSendRequest packet
+    private static HashMap<String, List<FileSend>> fileSendMap = new HashMap();
+    
     /**
      * Waits for a connection with a peer socket, then polls for a message being
      * sent. Each iteration of the loop operates for one message, as not to
@@ -189,6 +195,27 @@ public class CloudService {
             // Switch statement only goes over packets expected by the KDC, any other packet will be ignored.
             switch (packet.getType()) {
 
+                case FileSearchSendRequest: {
+                    
+                    FileSearchSendRequest fssr_Packet = (FileSearchSendRequest) packet;
+                    
+                    // Get the next index 
+                    int index = fssr_Packet.getLast_index()+1;
+                    
+                    // Search for the FileToSend
+                    FileSend fileSend = transportManager.getFileSendWithIndex(fileSendMap.get(fssr_Packet.getID()), index);
+                    
+                    // FileSend was not found, send error response to peer
+                    if(fileSend == null) {
+                        FileSend err_fileSend = new FileSend(fssr_Packet.getID(), null, index, true);
+                        Communication.send(peer, err_fileSend);
+                    } 
+                    // FileSend was found, send it to peer
+                    else {
+                        Communication.send(peer, fileSend);
+                    }
+                }; break;
+                
                 case FileSearchRequest: {
                     
                     FileSearchRequest fileSearchRequest = (FileSearchRequest) packet;
@@ -215,9 +242,18 @@ public class CloudService {
                     else {
                         for(EncryptedDocument doc : eDocs) {
                             if(doc.getUsers().contains(fileSearchRequest.getUsername())) {
+                                // Construct the List<FileSend> for doc.
+                                List<FileSend> fileSends = transportManager.fromEncodedFile(doc.getID(), doc.getEncoded_file());
+                                // Append fileSends to fileSendMap to be accessed by FileSearchSendRequest later.
+                                fileSendMap.put(doc.getID(), fileSends);
+                                
+                                // Set accessed to true
+                                accessed = true;
+
+                                // Send an accepting response too the client
                                 FileSearchResponse fileSearchResponse = new FileSearchResponse(true, doc.getID(), doc.getEncrypted_filename());
                                 Communication.send(peer, fileSearchResponse);
-                                accessed = true;
+                                
                                 break;
                             }
                         }

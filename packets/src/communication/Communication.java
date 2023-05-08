@@ -40,6 +40,7 @@ import packets.filepack.FileCreate;
 import packets.filepack.FileReceived;
 import packets.filepack.FileSearchRequest;
 import packets.filepack.FileSearchResponse;
+import packets.filepack.FileSearchSendRequest;
 import packets.filepack.FileSend;
 
 /**

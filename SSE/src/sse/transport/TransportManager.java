@@ -115,4 +115,14 @@ public class TransportManager {
         return transport_table.remove(ID);
     }
     
+    /**
+     * Retrieves a FileSend with the associating index
+     * @param list List<FileSend> list
+     * @param index index value to be received
+     * @return a FileSend if one is found with FileSend.index == {@code index}, or else null
+     */
+    public FileSend getFileSendWithIndex(List<FileSend> list, int index) {
+        return list.stream().filter(n -> n.getIndex() == index).findFirst().orElse(null);
+    }
+    
 }

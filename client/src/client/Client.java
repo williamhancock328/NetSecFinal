@@ -10,6 +10,7 @@ import conf.Config;
 import conf.Host;
 import java.io.Console;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,6 +36,7 @@ import packets.filepack.FileCreate;
 import packets.filepack.FileReceived;
 import packets.filepack.FileSearchRequest;
 import packets.filepack.FileSearchResponse;
+import packets.filepack.FileSearchSendRequest;
 import packets.filepack.FileSend;
 import sse.Token;
 import sse.client.FileNameSymmetricCrypto;
@@ -450,43 +452,6 @@ public class Client {
                     System.out.println("Could Server Document ID: " + fileReceived.getFileID());
                     
                     
-                    /**
-                     * Session key
-                     */
-                    
-                    // Encode keywords
-//                    String encoded = Base64.getEncoder().encodeToString(keywordList.toString().getBytes());
-//                    System.out.println("Encoded: " + encoded);
-//                    // Decode to byte[]
-//                    byte[] decodedBytes = Base64.getDecoder().decode(encoded);
-////                  String decodedString = new String(decodedBytes);
-////                  System.out.println("Decoded: " + decodedString);
-//
-//                    //Encrypt the key words
-//                    byte[] EncKeyWords = ClientSessionKeyEncryption.encrypt(sessionKeyClient, decodedBytes, user, service);
-//                    String StringEncKeyWords = Base64.getEncoder().encodeToString(EncKeyWords);
-//                    //System.out.println("Client side enc. keywords: " + StringEncKeyWords);
-//
-//                    // IV used in key word encryption
-//                    byte[] iv = ClientSessionKeyEncryption.getRawIv();
-//                    String stringIV = Base64.getEncoder().encodeToString(iv);
-//                    //System.out.println(stringIV);
-//
-//                    // Encrypt the nonce
-//                    byte[] EncNonce = ClientSessionKeyEncryption.encrypt(sessionKeyClient, nonceDBytes, user, service);
-//                    String StringEncNonce = Base64.getEncoder().encodeToString(EncNonce);
-//                    //System.out.println("Client side enc. nonce: " + StringEncNonce);
-//                    //System.out.println("OG nonce " + Base64.getEncoder().encodeToString(nonceDBytes));
-//
-//                    // IV used in nonce encryption
-//                    byte[] iv2 = ClientSessionKeyEncryption.getRawIv();
-//                    String stringIV2 = Base64.getEncoder().encodeToString(iv2);
-//                    //System.out.println(stringIV2);
-//
-//                    // MESSAGE 1: Client sends encrypted key words and nonce for file send
-//                    KeyWordSend sendKeyWords = new KeyWordSend(StringEncKeyWords, StringEncNonce, stringIV, user, stringIV2); // Construct the packet
-//                    SSLSocket out = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), sendKeyWords); // Send the packet
-
                 } else {
 
                     System.out.println("The file path is invalid.");
@@ -499,7 +464,7 @@ public class Client {
                 
                //TO-DO: Encrypt file contents with file key
                //Keywords used to associate a file with (searchable encryptin)
-               System.out.println("Create associated key words: ");
+               System.out.println("Please enter the associated key words: ");
                String keywords = scanner2.nextLine();
                String[] strings = keywords.split(" ");
                ArrayList<String> keywordList = new ArrayList<>(Arrays.asList(strings));
@@ -529,61 +494,80 @@ public class Client {
                // 3. Send a FileSearchRequest
                FileSearchRequest fileSearchRequest = new FileSearchRequest(tokens_strings, user);
                SSLSocket send_out = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), fileSearchRequest); // Send the packet
-               FileSearchResponse fileSearchResponse_packet = (FileSearchResponse) Communication.read(send_out); // Receive the fileReceived packet
-                
+               FileSearchResponse fileSearchResponse_packet = (FileSearchResponse) Communication.read(send_out); // Receive the FileSearchResponse packet.
+               boolean accessed = fileSearchResponse_packet.isAccessed(); 
+               
                // No files have been found with the associating keywords, or you were not permitted to access a file.
-               if(!fileSearchResponse_packet.isAccessed())  {
+               if(!accessed)  {
                    System.out.println("No files have been found with the associating keywords, or you were not permitted to access a file.");
                    break;
                } 
                
+               // We must have found an accepting document if we made it here.
+               final String ID = fileSearchResponse_packet.getID();
+               final String plain_text_fileName = FileNameSymmetricCrypto.decryptFileName(fileSearchResponse_packet.getEncrypted_filename(), fpKey, fpIV);
                
+               // If the plain_text_fileName is null that means that the keys were incorect, and thus there is a difference between the keys for the fpKey, fpIV 
+               //   .. with the keywords and the filename/file.
+               if(plain_text_fileName == null) {
+                   System.out.println("Error decrypting file, probabily an incorrect key.");
+                   break;
+               }
+               // If the file exists at the path directory, then do not add it, duplicate files
+               File file = new File(path.toString() + "/" +plain_text_fileName);
+               if(file.exists()) {
+                   System.out.println("A file already exists at the path ["+file.getPath()+"]");
+                   break;
+               }
                
-//            // Get fresh nonce E for MSG
-//            byte[] nonceEBytes = nc.getNonce();
-//            //Add nonceE to nonce cache
-//            nc.addNonce(nonceEBytes);
-//
-//            //File keywords to be requested
-//            System.out.println("Enter key words. Please seperate each one with a comma");
-//            String keywords = scanner2.nextLine();
-//            String[] strings = keywords.split(" ");
-//            ArrayList<String> keywordList = new ArrayList<>(Arrays.asList(strings));
-//
-//            // Encode the key word list
-//            String encoded = Base64.getEncoder().encodeToString(keywordList.toString().getBytes());
-//            //System.out.println("Encoded: " + encoded);
-//
-//            // Decode the key word to a byte[]
-//            byte[] decodedBytes = Base64.getDecoder().decode(encoded);
-//            String decodedString = new String(decodedBytes);
-//            //System.out.println("Decoded: " + decodedString);
-//
-//            //Encrypt the key words
-//            byte[] EncKeyWords = ClientSessionKeyEncryption.encrypt(sessionKeyClient, decodedBytes, user, service);
-//            String StringEncKeyWords = Base64.getEncoder().encodeToString(EncKeyWords);
-//            //System.out.println("Client side enc. keywords: " + StringEncKeyWords);
-//
-//            // IV used in key word encryption
-//            byte[] iv = ClientSessionKeyEncryption.getRawIv();
-//            String stringIV = Base64.getEncoder().encodeToString(iv);
-//            //System.out.println(stringIV);
-//
-//            //Encrypt the nonce
-//            byte[] EncNonce = ClientSessionKeyEncryption.encrypt(sessionKeyClient, nonceEBytes, user, service);
-//            String StringEncNonce = Base64.getEncoder().encodeToString(EncNonce);
-//            //System.out.println("Client side enc. nonce: " + StringEncNonce);
-//            //System.out.println("OG nonce " + Base64.getEncoder().encodeToString(nonceEBytes));
-//
-//            // IV used in nonce encryption
-//            byte[] iv2 = ClientSessionKeyEncryption.getRawIv();
-//            String stringIV2 = Base64.getEncoder().encodeToString(iv2);
-//            //System.out.println(stringIV2);
-//
-//            // MESSAGE 1: Client sends KeyWords for file send
-//            KeyWordSend sendKeyWords = new KeyWordSend(StringEncKeyWords, StringEncNonce, stringIV, user, stringIV2); // Construct the packet
-//            SSLSocket out = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), sendKeyWords); // Send the packet
-
+               System.out.println("Accessed: " + accessed + " ID:" + ID + "FileName: " + plain_text_fileName);
+               System.out.println("Starting file transfer...");
+               
+               // Builder that constructs the encoded_file from the FileSend packets
+               StringBuilder builder = new StringBuilder();
+               
+               // Run until a packet with ending isfinal = true
+               boolean run = true;
+               int last_index = -1;
+               while(run) {
+                   // Construct a FileSearchSendRequest packet, and receive a FileSend packet containing the fragment.
+                   FileSearchSendRequest fssr_send_Packet = new FileSearchSendRequest(ID, last_index);
+                   SSLSocket search_out = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), fssr_send_Packet); // Send the packet
+                   FileSend fileSend_Resp = (FileSend) Communication.read(search_out); // Receive the FileSend packet                   
+                   
+                   // If the file fragment is null it was not found.
+                   if(fileSend_Resp == null || fileSend_Resp.getFile_bit().isEmpty()) {
+                       throw new NullPointerException("File bit null, file bit was not found on server.\nFile in EncryptedDocument database is fragmented or there was an issue sending the file.");
+                   }
+                   
+                   // Append the fragment to the builder
+                   builder.append(fileSend_Resp.getFile_bit());
+                   
+                   // Increase last_index ctr.
+                   last_index = fileSend_Resp.getIndex();
+                   
+                   // If this is the last file, stop the loop
+                   if(fileSend_Resp.isIsfinal()) { run = false; }
+                   
+               }
+               
+               // Decrypt the file
+               byte[] plaintext_file = FileSymmetricCrypto.decrypt(builder.toString(), fpKey, fpIV);            
+               
+               // Create the file
+               file.createNewFile();
+               
+               // Write the file to the location https://www.baeldung.com/java-write-byte-array-file
+               try(FileOutputStream outputStream = new FileOutputStream(file)) {
+                    outputStream.write(plaintext_file);
+               } catch(Exception e) {
+                   System.out.println("There was an error writing the file at path ["+file.getPath()+"]");
+                   e.printStackTrace();
+               }
+               
+               // If the file wrote correctly, print the output
+               System.out.println("File create successfully at path ["+file.getPath()+"]");
+               
             }; break;
             
             //Exit

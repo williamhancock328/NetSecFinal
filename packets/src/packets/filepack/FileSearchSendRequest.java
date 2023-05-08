@@ -19,7 +19,7 @@ import packets.PacketType;
 public class FileSearchSendRequest implements Packet, JSONSerializable {
         
     // Packet Type
-    private static final PacketType PACKET_TYPE = PacketType.FileSend;
+    private static final PacketType PACKET_TYPE = PacketType.FileSearchSendRequest;
     
     // Packet Data
     private String ID; // ID of the file, this is necissary.
@@ -71,14 +71,15 @@ public class FileSearchSendRequest implements Packet, JSONSerializable {
             if (tmp.containsKey("ID"))
               this.ID = tmp.getString("ID");
             else
-              throw new InvalidObjectException("Expected an FileSend object -- ID expected.");
+              throw new InvalidObjectException("Expected an FileSearchSendRequest object -- ID expected.");
+            
             if (tmp.containsKey("last_index"))
               this.last_index = tmp.getInt("last_index");
             else
-              throw new InvalidObjectException("Expected an FileSend object -- file_bit expected.");
+              throw new InvalidObjectException("Expected an FileSearchSendRequest object -- last_index expected.");
           }
           else 
-            throw new InvalidObjectException("Expected a FileSend - Type JSONObject not found.");
+            throw new InvalidObjectException("Expected a FileSearchSendRequest - Type JSONObject not found.");
     }
 
     /**
