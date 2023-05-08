@@ -171,6 +171,9 @@ public class CloudService {
                     // Return a FileReceived Packet
                     FileReceived fileReceived_Packet = new FileReceived(true, eDocument.getID(), eDocument.getEncrypted_filename());
                     Communication.send(peer, fileReceived_Packet);
+                    
+                    // Update the document Database
+                    SSE.updateDB();
                 }
                 
                 case FileSend: {
@@ -179,13 +182,26 @@ public class CloudService {
                     // If this is the last packet, build the encoded_file and add it to the document with {@code ID}
                     if(FileSend_packet.isIsfinal()) {
                         
+                        // Find the existing EncryptedDocument
+                        EncryptedDocument eDocument = SSE.Search(UUID.fromString(FileSend_packet.getID()));
+                        
+                        // Build the encoded_file.
+                        String encoded_file = transportManager.toEncodedFile(FileSend_packet.getID());
+                        
+                        // Assign the encoded_file to eDocument
+                        eDocument.setEncoded_file(encoded_file);
+                        
+                        // Update the document Database
+                        SSE.updateDB();
                     } 
                     // If this is not the last packet, add it to the TransportManager
                     else {
-                        
+                        // Add the packet as received
+                        transportManager.received(FileSend_packet);
                     }
-                   
                 }
+                
+                
                 
                 // ClientHello package
                 case ClientHello: {

@@ -78,5 +78,20 @@ public class Database implements JSONSerializable {
         obj.put("entries", entries); // Assign the entries array.
         return obj; // We are never reading this file to JSON.
     }
+    
+    /**
+     * Updates this database
+     */
+    public void update() {
+        try
+        {
+          JsonIO.writeSerializedObject(this, new File(this.path));
+        }
+        catch (FileNotFoundException ex)
+        {
+          System.out.println("Could not save vault to disk.");
+          System.out.println(ex);
+        }
+    }
 
 }
