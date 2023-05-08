@@ -69,6 +69,13 @@ public class SSE {
         return docCollection.Search(uuid); // Finds the EncryptedDocument
     }
     
+    /**
+     * Updates the Database
+     */
+    public void updateDB() {
+        
+    }
+    
    // public Token DeleteToken(Key secretKey, int id) {
    //     return null;
    // }
