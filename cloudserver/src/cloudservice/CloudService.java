@@ -216,12 +216,12 @@ public class CloudService {
                     // Add the file too the Document_Collection
                     SSE.Insert(fileCreate.getTokens().stream().map(n -> new Token(n)).collect(Collectors.toList()), eDocument);
                     
+                    // Update the document Database
+                    SSE.updateDB();
+                    
                     // Return a FileReceived Packet
                     FileReceived fileReceived_Packet = new FileReceived(true, eDocument.getID(), eDocument.getEncrypted_filename());
                     Communication.send(peer, fileReceived_Packet);
-                    
-                    // Update the document Database
-                    SSE.updateDB();
                 }; break;
                 
                 case FileSend: {
@@ -241,11 +241,19 @@ public class CloudService {
                         
                         // Update the document Database
                         SSE.updateDB();
+                        
+                        // Return a FileReceived Packet
+                        FileReceived fileReceived_Packet = new FileReceived(true, eDocument.getID(), eDocument.getEncrypted_filename());
+                        Communication.send(peer, fileReceived_Packet);
                     } 
                     // If this is not the last packet, add it to the TransportManager
                     else {
                         // Add the packet as received
                         transportManager.received(FileSend_packet);
+                        
+                        // Return a FileReceived Packet
+                        FileReceived fileReceived_Packet = new FileReceived(true, FileSend_packet.getID(), "");
+                        Communication.send(peer, fileReceived_Packet);
                     }
                 }; break;
                 
