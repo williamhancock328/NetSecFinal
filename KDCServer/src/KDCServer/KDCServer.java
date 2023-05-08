@@ -10,7 +10,10 @@ import KDCServer.config.SecretsConfig;
 import KDCServer.crypto.ServerMasterKeyEncryption;
 import communication.Communication;
 import config.SSLConfig;
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.net.Socket;
 import java.net.ServerSocket;
 import java.io.IOException;
@@ -37,6 +40,9 @@ import json.Vault;
 import merrimackutil.cli.LongOption;
 import merrimackutil.cli.OptionParser;
 import merrimackutil.codec.Base32;
+import merrimackutil.json.JsonIO;
+import merrimackutil.json.types.JSONArray;
+import merrimackutil.json.types.JSONObject;
 import merrimackutil.util.NonceCache;
 import merrimackutil.util.Tuple;
 import packets.AuthRequest;
@@ -201,6 +207,7 @@ public class KDCServer {
                     //check if a user exists, and enroll them if not.
                     EnrollRequest EnrollRequest_packet = (EnrollRequest) packet;
                     String user = EnrollRequest_packet.getUser();
+                    String pass = EnrollRequest_packet.getPass();
                     String receivedNonceA = EnrollRequest_packet.getNonce();
                     //.out.println(receivedNonceA);
                     byte[] nonceAToBytes = Base64.getDecoder().decode(receivedNonceA);
@@ -217,8 +224,9 @@ public class KDCServer {
                             ServerResponse eresp = new ServerResponse(false, "User already exists.", "");
                             Communication.send(peer, eresp);
                             break;
+                        } else {
+                            SaveJSON(secrets, user, pass);
                         }
-
                         // Construct an key for the HMAC.
                         KeyGenerator hmacKeyGen = KeyGenerator.getInstance("HmacSHA1");
                         SecretKey key = hmacKeyGen.generateKey();
@@ -321,4 +329,31 @@ public class KDCServer {
 
     }
 
+    /**
+     * Saves the secrets to a file
+     */
+    private static void SaveJSON(ArrayList<Secrets> secs, String user, String pass) {
+        Secrets toAdd = new Secrets(user, pass);
+        secrets.add(toAdd);
+        JSONArray arr = new JSONArray();
+        for (Secrets secret : secrets) {
+            arr.add(secret.toJSONType());
+        }
+        JSONObject ret = new JSONObject();
+        ret.put("secrets", arr);
+        //initialize vault file
+        File file = new File("secrets.json");
+        try {
+            if (!file.exists() || !file.isFile()) {
+                file.createNewFile();
+            }
+
+            // Write formatted json to FILE
+            BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+            writer.write(ret.getFormattedJSON());
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

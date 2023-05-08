@@ -41,6 +41,7 @@ import packets.PacketType;
 import static packets.PacketType.ClientHello;
 import packets.ServerHello;
 import packets.Ticket;
+import packets.abstractpk.SessionKeyPackets;
 import packets.filepack.FileCreate;
 import packets.filepack.FileReceived;
 import packets.filepack.FileSend;
@@ -158,15 +159,63 @@ public class CloudService {
 
             // Switch statement only goes over packets expected by the KDC, any other packet will be ignored.
             switch (packet.getType()) {
-                
+
                 case FileCreate: {
-                    FileCreate FileCreate_packet = (FileCreate) packet;
+                    SessionKeyPackets SessionKeyPackets_packet = (SessionKeyPackets) packet;
+
+                    String encPacket = SessionKeyPackets_packet.getEncrypted_packet();
+                    String iv = SessionKeyPackets_packet.getIv();
+                    String user = SessionKeyPackets_packet.getUser();
+
+                    byte[] decPacket = EchoSessionKeyDecryption.decrypt(encPacket, iv, user, serverSidesessionKey);
+                    // Decode the decrypted packet from Base64
+                    byte[] decodedBytes = Base64.getDecoder().decode(decPacket);
+
+                    // Reconstruct the FileCreate object using the decoded bytes
+                    String fileCreateString = new String(decodedBytes);
+                    
+                    System.out.println("Byte packet poat decryption:" + fileCreateString);
+                    
+                    FileCreate fileCreate = new FileCreate(fileCreateString, SessionKeyPackets_packet.getType());
+                    
+                    
+                    fileCreate.getEncrypted_filename();
+                    fileCreate.getTokens();
+                    fileCreate.getUsers();
+
+
+//                    //System.out.println("Server side enc. keywords:" + ctKeywords);
+//                    //System.out.println("key word iv: " + iv);
+//                    //System.out.println("Server side enc. nonce:" + ct_stringNonceD);
+//                    //byte[] nonce = EchoSessionKeyDecryption.decrypt(ct_stringNonceD, iv, user, serverSidesessionKey);
+//                    byte[] byteKeywords = EchoSessionKeyDecryption.decrypt(ctKeywords, iv, user, serverSidesessionKey);
+//                    //String decrypted_keywords = Base64.getEncoder().encodeToString(byteKeywords);
+//                    //byte[] decodedBytes = Base64.getDecoder().decode(encoded);
+//                    String decodedString = new String(byteKeywords);
+//
+//                    System.out.println("Decryped keywords!!! ->" + decodedString);
+//                    //System.out.println("iv2 ->" + KeyWordSend_packet.getIv2());
+//
+//                    byte[] byteNonceD = EchoSessionKeyDecryption.decrypt(ct_stringNonceD, iv2, user, serverSidesessionKey);
+//                    String ptNonce = Base64.getEncoder().encodeToString(byteNonceD);
+//                    System.out.println("Decrypted nonce -> " + ptNonce);
+  
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
                     
                     // Construct a new EncryptedDocument
-                    EncryptedDocument eDocument = new EncryptedDocument(FileCreate_packet.getEncrypted_filename(), FileCreate_packet.getUsers());
+                    EncryptedDocument eDocument = new EncryptedDocument(fileCreate.getEncrypted_filename(), fileCreate.getUsers());
                                         
                     // Add the file too the Document_Collection
-                    SSE.Insert(FileCreate_packet.getTokens().stream().map(n -> new Token(n)).collect(Collectors.toList()), eDocument);
+                    SSE.Insert(fileCreate.getTokens().stream().map(n -> new Token(n)).collect(Collectors.toList()), eDocument);
                     
                     // Return a FileReceived Packet
                     FileReceived fileReceived_Packet = new FileReceived(true, eDocument.getID(), eDocument.getEncrypted_filename());

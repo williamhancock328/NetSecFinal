@@ -399,15 +399,19 @@ public class Client {
                     String encoded = Base64.getEncoder().encodeToString(fileCreate.toString().getBytes());                    
                     byte[] bytePacket = Base64.getDecoder().decode(encoded);
                     
+                    System.out.println("Byte packet pre encryption:" + encoded);
+                    
                     // Encrypt file create with session key here
                     byte[] encPacket = ClientSessionKeyEncryption.encrypt(sessionKeyClient, bytePacket, user, service);
+                    
+                    
                     String StringEncPacket = Base64.getEncoder().encodeToString(encPacket);
                     byte[] rawIV = ClientSessionKeyEncryption.getRawIv();
                     String StringRawIV = Base64.getEncoder().encodeToString(rawIV);
                     byte[] EncNonce = ClientSessionKeyEncryption.encrypt(sessionKeyClient, nonceDBytes, user, service);
                     String StringEncNonce = Base64.getEncoder().encodeToString(EncNonce);
                     
-                    SessionKeyPackets SessionKeyPacket_packet = new SessionKeyPackets(StringRawIV, StringEncNonce, StringEncPacket);
+                    SessionKeyPackets SessionKeyPacket_packet = new SessionKeyPackets(StringRawIV, StringEncNonce, StringEncPacket, user);
                     SSLSocket out = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), SessionKeyPacket_packet); // Send the packet
                     
                     FileReceived fileReceived = (FileReceived) Communication.read(out); // Receive the fileReceived packet
@@ -430,7 +434,7 @@ public class Client {
                         byte[] EncNonce2 = ClientSessionKeyEncryption.encrypt(sessionKeyClient, nonceDBytes, user, service);
                         String StringEncNonce2 = Base64.getEncoder().encodeToString(EncNonce2);
                    
-                        SessionKeyPackets SessionKeyPacket_packet2 = new SessionKeyPackets(StringRawIV2, StringEncNonce2, StringEncPacket2);
+                        SessionKeyPackets SessionKeyPacket_packet2 = new SessionKeyPackets(StringRawIV2, StringEncNonce2, StringEncPacket2, user);
                         
                         SSLSocket send_out = Communication.connectAndSend(hostt.getAddress(), hostt.getPort(), SessionKeyPacket_packet2); // Send the packet
                         FileReceived send_fileReceived = (FileReceived) Communication.read(send_out); // Receive the fileReceived packet
