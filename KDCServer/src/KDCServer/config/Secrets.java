@@ -5,15 +5,19 @@ import merrimackutil.json.JSONSerializable;
 import merrimackutil.json.types.JSONObject;
 import merrimackutil.json.types.JSONType;
 
-
 public class Secrets implements JSONSerializable {
-        
+
     private String user;
     private String secret;
 
     public Secrets(JSONObject obj) throws InvalidObjectException {
         deserialize(obj); // Deserialize a host into this host object
-    }         
+    }
+
+    public Secrets(String name, String pass){
+        this.user = name;
+        this.secret = pass;
+    }
 
     @Override
     public String serialize() {
@@ -22,17 +26,21 @@ public class Secrets implements JSONSerializable {
 
     @Override
     public void deserialize(JSONType jsont) throws InvalidObjectException {
-        if(jsont instanceof JSONObject) {
+        if (jsont instanceof JSONObject) {
             JSONObject obj = (JSONObject) jsont;
-            
-            if(obj.containsKey("user")) {
+
+            if (obj.containsKey("user")) {
                 this.user = obj.getString("user");
-            } else { throw new InvalidObjectException("Expected an Secret object -- user expected."); }
-            
-            if(obj.containsKey("secret")) {
+            } else {
+                throw new InvalidObjectException("Expected an Secret object -- user expected.");
+            }
+
+            if (obj.containsKey("secret")) {
                 this.secret = obj.getString("secret");
-            } else { throw new InvalidObjectException("Expected an Secret object -- secret expected."); }
-            
+            } else {
+                throw new InvalidObjectException("Expected an Secret object -- secret expected.");
+            }
+
         }
     }
 
@@ -42,7 +50,7 @@ public class Secrets implements JSONSerializable {
         obj.put("user", this.getUser());
         obj.put("secret", this.getSecret());
 
-
+        
         return obj; // We should never be writing to a file.
     }
 
@@ -54,9 +62,4 @@ public class Secrets implements JSONSerializable {
         return secret;
     }
 
-    
-
-    
-    
 }
-
