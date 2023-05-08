@@ -12,6 +12,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Base64;
 import merrimackutil.json.JsonIO;
 import merrimackutil.json.types.JSONObject;
 import static packets.PacketType.AuthRequest;

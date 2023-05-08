@@ -21,6 +21,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
@@ -41,7 +42,11 @@ import static packets.PacketType.ClientHello;
 import packets.ServerHello;
 import packets.Ticket;
 import packets.filepack.FileCreate;
+import packets.filepack.FileReceived;
+import packets.filepack.FileSend;
+import sse.EncryptedDocument;
 import sse.SSE;
+import sse.Token;
 import sse.transport.TransportManager;
 
 public class CloudService {
@@ -157,7 +162,29 @@ public class CloudService {
                 case FileCreate: {
                     FileCreate FileCreate_packet = (FileCreate) packet;
                     
-                    // Add the file too the TransportLayer                    
+                    // Construct a new EncryptedDocument
+                    EncryptedDocument eDocument = new EncryptedDocument(FileCreate_packet.getEncrypted_filename(), FileCreate_packet.getUsers());
+                                        
+                    // Add the file too the Document_Collection
+                    SSE.Insert(FileCreate_packet.getTokens().stream().map(n -> new Token(n)).collect(Collectors.toList()), eDocument);
+                    
+                    // Return a FileReceived Packet
+                    FileReceived fileReceived_Packet = new FileReceived(true, eDocument.getID(), eDocument.getEncrypted_filename());
+                    Communication.send(peer, fileReceived_Packet);
+                }
+                
+                case FileSend: {
+                    FileSend FileSend_packet = (FileSend) packet;
+                    
+                    // If this is the last packet, build the encoded_file and add it to the document with {@code ID}
+                    if(FileSend_packet.isIsfinal()) {
+                        
+                    } 
+                    // If this is not the last packet, add it to the TransportManager
+                    else {
+                        
+                    }
+                   
                 }
                 
                 // ClientHello package

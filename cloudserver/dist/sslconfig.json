@@ -1,6 +1,0 @@
-{
-  "password-file":"passwd.json",
-  "port":5000,
-  "keystore-file":"keystore.jks",
-  "keystore-pass":"test12345"
-}

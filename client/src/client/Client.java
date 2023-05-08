@@ -406,11 +406,11 @@ public class Client {
                     // 5. Consrtuct & Send the FileCreate Packet
                     FileCreate fileCreate = new FileCreate(encrypted_filename, usersList, tokens_strings);
                     
-                    // Encode keywords
+                    // Encode the file 
                     String encoded = Base64.getEncoder().encodeToString(fileCreate.toString().getBytes());                    
                     byte[] bytePacket = Base64.getDecoder().decode(encoded);
                     
-                    //Encrypt file create with session key here
+                    // Encrypt file create with session key here
                     byte[] encPacket = ClientSessionKeyEncryption.encrypt(sessionKeyClient, bytePacket, user, service);
                     String StringEncPacket = Base64.getEncoder().encodeToString(encPacket);
                     byte[] rawIV = ClientSessionKeyEncryption.getRawIv();

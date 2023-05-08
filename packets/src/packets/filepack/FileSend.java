@@ -22,7 +22,7 @@ public class FileSend implements Packet, JSONSerializable, Comparable<FileSend> 
     private static final PacketType PACKET_TYPE = PacketType.FileSend;
     
     // Packet Data
-    private String ID; // ID of the file, this is necisary.
+    private String ID; // ID of the file, this is necissary.
     private String file_bit;
     private int index;
     private boolean isfinal;
