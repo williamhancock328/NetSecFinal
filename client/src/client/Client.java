@@ -449,7 +449,7 @@ public class Client {
                     }
                     
                     // Done! File should now be updated
-                    System.out.println("Could Server Document ID: " + fileReceived.getFileID());
+                    System.out.println("Cloud Server Document ID: " + fileReceived.getFileID());
                     
                     
                 } else {

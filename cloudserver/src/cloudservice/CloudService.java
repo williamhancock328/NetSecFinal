@@ -304,9 +304,7 @@ public class CloudService {
                 
                 case FileSend: {
                     FileSend FileSend_packet = (FileSend) packet;
-                    
-                    System.out.println("ID: "+ FileSend_packet.getID());
-                    
+                                        
                     // Add the packet as received
                     transportManager.received(FileSend_packet);
                     
@@ -324,9 +322,7 @@ public class CloudService {
                         
                         // Assign the encoded_file to eDocument
                         eDocument.setEncoded_file(encoded_file);
-                        
-                        System.out.println("file: " + eDocument.getEncoded_file());
-                        
+                                                
                         System.out.println("Updated DB");
                         // Update the document Database
                         SSE.updateDB();

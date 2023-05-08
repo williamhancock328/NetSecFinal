@@ -101,7 +101,7 @@ public class TransportManager {
         // Get the last element of ret, and set isfinal to true.
         ret.get(ret.size()-1).setIsfinal(true);
         
-        System.out.println( "size: " + ret.size() + " " + (ret.get(ret.size()-1).isIsfinal()) );
+        //System.out.println( "size: " + ret.size() + " " + (ret.get(ret.size()-1).isIsfinal()) );
         
         return ret;
     }
