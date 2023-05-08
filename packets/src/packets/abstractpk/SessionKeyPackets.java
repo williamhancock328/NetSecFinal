@@ -19,7 +19,7 @@ import packets.PacketType;
  */
 public class SessionKeyPackets implements JSONSerializable, Packet {
 
-      // Packet Type
+    // Packet Type
     private static final PacketType PACKET_TYPE = PacketType.SessionKeyPackets;
     
     

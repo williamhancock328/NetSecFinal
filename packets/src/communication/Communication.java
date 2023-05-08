@@ -9,6 +9,7 @@ import packets.AuthRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.InvalidObjectException;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -121,6 +122,17 @@ public class Communication {
             throw new NullPointerException("No packet called [" + identifier + "] found.");
         }
 
+        return constructPacket(line, packetType);
+    }
+    
+    /**
+     * Constructs a packet from a line string and the packet type.
+     * @param line
+     * @param packetType
+     * @return
+     * @throws InvalidObjectException 
+     */
+    public static Packet constructPacket(String line, PacketType packetType) throws InvalidObjectException {
         // Switch over all of the packet types
         // Using a switch statement to avoid reflection
         switch (packetType) {
@@ -146,7 +158,6 @@ public class Communication {
             default:
                 return null;
         }
-
     }
 
 }

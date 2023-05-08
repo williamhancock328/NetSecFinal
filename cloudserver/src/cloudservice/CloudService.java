@@ -29,6 +29,8 @@ import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import merrimackutil.cli.LongOption;
 import merrimackutil.cli.OptionParser;
+import merrimackutil.json.JsonIO;
+import merrimackutil.json.types.JSONObject;
 import merrimackutil.util.NonceCache;
 import merrimackutil.util.Tuple;
 import packets.ClientHello;
@@ -153,37 +155,36 @@ public class CloudService {
 
             // Determine the packet type.
             System.out.println("Waiting for a packet...");
-            final Packet packet = Communication.read(peer);
+            Packet packet = Communication.read(peer);
 
+            if(packet.getType() == PacketType.SessionKeyPackets) {
+                SessionKeyPackets SessionKeyPackets_packet = (SessionKeyPackets) packet;
+
+                String encPacket = SessionKeyPackets_packet.getEncrypted_packet();
+                String iv = SessionKeyPackets_packet.getIv();
+                String user = SessionKeyPackets_packet.getUser();
+
+                byte[] decPacket = EchoSessionKeyDecryption.decrypt(encPacket, iv, user, serverSidesessionKey);
+                // Decode the decrypted packet from Base64
+                byte[] decodedBytes = Base64.getDecoder().decode(decPacket);
+                // Reconstruct the FileCreate object using the decoded bytes
+                String decrypted_packet = new String(decodedBytes);
+                    
+                JSONObject object = JsonIO.readObject(decrypted_packet); // All packets are type JSON object with identifier "packetType"
+                String identifier = object.getString("packetType");
+                PacketType packetType = PacketType.getPacketTypeFromString(identifier);
+                
+                // Assign the decrypted packet to the polling packet from the SessionKeyPacket
+                packet = Communication.constructPacket(decrypted_packet, packetType);
+            }
+            
             System.out.println("Packet Recieved: [" + packet.getType().name() + "]");
 
             // Switch statement only goes over packets expected by the KDC, any other packet will be ignored.
             switch (packet.getType()) {
 
                 case FileCreate: {
-                    SessionKeyPackets SessionKeyPackets_packet = (SessionKeyPackets) packet;
-
-                    String encPacket = SessionKeyPackets_packet.getEncrypted_packet();
-                    String iv = SessionKeyPackets_packet.getIv();
-                    String user = SessionKeyPackets_packet.getUser();
-
-                    byte[] decPacket = EchoSessionKeyDecryption.decrypt(encPacket, iv, user, serverSidesessionKey);
-                    // Decode the decrypted packet from Base64
-                    byte[] decodedBytes = Base64.getDecoder().decode(decPacket);
-
-                    // Reconstruct the FileCreate object using the decoded bytes
-                    String fileCreateString = new String(decodedBytes);
                     
-                    System.out.println("Byte packet poat decryption:" + fileCreateString);
-                    
-                    FileCreate fileCreate = new FileCreate(fileCreateString, SessionKeyPackets_packet.getType());
-                    
-                    
-                    fileCreate.getEncrypted_filename();
-                    fileCreate.getTokens();
-                    fileCreate.getUsers();
-
-
 //                    //System.out.println("Server side enc. keywords:" + ctKeywords);
 //                    //System.out.println("key word iv: " + iv);
 //                    //System.out.println("Server side enc. nonce:" + ct_stringNonceD);
@@ -202,14 +203,7 @@ public class CloudService {
   
                     
                     
-                    
-                    
-                    
-                    
-                    
-                    
-                    
-                    
+                    FileCreate fileCreate = (FileCreate) packet;
                     
                     // Construct a new EncryptedDocument
                     EncryptedDocument eDocument = new EncryptedDocument(fileCreate.getEncrypted_filename(), fileCreate.getUsers());
