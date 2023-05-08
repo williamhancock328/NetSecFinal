@@ -115,6 +115,7 @@ public class FileCreate implements Packet, JSONSerializable {
         JSONArray tokens_array = new JSONArray();
         tokens_array.addAll(this.getTokens());
         
+        object.put("packetType", PACKET_TYPE.toString()); // MUST BE PRESENT FOR ALL PACKETS
         object.put("encrypted_filename", this.getEncrypted_filename());
         object.put("users", users_array);
         object.put("tokens", tokens_array);

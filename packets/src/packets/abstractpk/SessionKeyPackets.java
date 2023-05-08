@@ -12,6 +12,7 @@ import merrimackutil.json.types.JSONObject;
 import merrimackutil.json.types.JSONType;
 import packets.Packet;
 import packets.PacketType;
+import static packets.PacketType.SessionKeyPackets;
 
 /**
  *
@@ -106,6 +107,7 @@ public class SessionKeyPackets implements JSONSerializable, Packet {
     public JSONType toJSONType() {
         JSONObject object = new JSONObject();
 
+        object.put("packetType", PACKET_TYPE.toString()); // MUST BE PRESENT FOR ALL PACKETS
         object.put("iv", this.iv);
         object.put("nonce", this.nonce);
         object.put("encrypted_packet", this.encrypted_packet);

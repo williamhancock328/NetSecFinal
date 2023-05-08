@@ -31,7 +31,7 @@ public enum PacketType {
       FileSearchResponse(packets.filepack.FileSearchResponse.class),
       
       // Session Key Abstracted Layer Packet
-      SessionKeyPackets(packets.abstractpk.SessionKeyPackets.class)
+      SessionKeyPackets(packets.abstractpk.SessionKeyPackets.class),
       ;
 
       
