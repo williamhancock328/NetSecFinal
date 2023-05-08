@@ -169,7 +169,9 @@ public class CloudService {
                 byte[] decodedBytes = Base64.getDecoder().decode(decPacket);
                 // Reconstruct the FileCreate object using the decoded bytes
                 String decrypted_packet = new String(decodedBytes);
-                    
+                
+                System.out.println(decrypted_packet);
+   
                 JSONObject object = JsonIO.readObject(decrypted_packet); // All packets are type JSON object with identifier "packetType"
                 String identifier = object.getString("packetType");
                 PacketType packetType = PacketType.getPacketTypeFromString(identifier);
