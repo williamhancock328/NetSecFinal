@@ -53,7 +53,7 @@ public class Tokenizer {
         try {
             // Use AES in GCM mode. No padding is needed as
             // GCM is a streaming AEAD mode.
-            aesCipher = Cipher.getInstance("AES/GCM/NoPadding");
+            aesCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             aesCipher.init(Cipher.ENCRYPT_MODE, key, IV);
         } 
         catch(NoSuchAlgorithmException nae)

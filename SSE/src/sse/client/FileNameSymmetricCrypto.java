@@ -39,7 +39,7 @@ public class FileNameSymmetricCrypto {
         try {
             // Use AES in GCM mode. No padding is needed as
             // GCM is a streaming AEAD mode.
-            aesCipher = Cipher.getInstance("AES/GCM/NoPadding");
+            aesCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             aesCipher.init(Cipher.ENCRYPT_MODE, key, IV);
             
             // If the aesCipher object returned null w/o throwing any errors
@@ -87,7 +87,7 @@ public class FileNameSymmetricCrypto {
         try {
             // Use AES in GCM mode. No padding is needed as
             // GCM is a streaming AEAD mode.
-            aesCipher = Cipher.getInstance("AES/GCM/NoPadding");
+            aesCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             aesCipher.init(Cipher.DECRYPT_MODE, key, IV);
             
             byte[] decoded_cipher_text = Base64.getDecoder().decode(cipher_text_file_name);
