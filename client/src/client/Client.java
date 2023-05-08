@@ -406,7 +406,7 @@ public class Client {
                     System.out.println("Byte packet pre encryption:" + encoded);
                     
                     // Encrypt file create with session key here
-                    byte[] encPacket = ClientSessionKeyEncryption.encrypt(fileCreate.serialize().getBytes(), bytePacket, user, service);
+                    byte[] encPacket = ClientSessionKeyEncryption.encrypt(sessionKeyClient, bytePacket, user, service);
                     
                     
                     String StringEncPacket = Base64.getEncoder().encodeToString(encPacket);
