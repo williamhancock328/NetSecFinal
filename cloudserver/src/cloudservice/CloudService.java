@@ -10,7 +10,6 @@ import java.io.FileNotFoundException;
 import java.net.Socket;
 import java.io.IOException;
 import java.io.InvalidObjectException;
-import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -171,7 +170,7 @@ public class CloudService {
                 // Decode the decrypted packet from Base64
             
                 // Reconstruct the FileCreate object using the decoded bytes
-                String decrypted_packet = Base64.getEncoder().encodeToString(decPacket);
+                String decrypted_packet = new String(decPacket);
                 
                 
                 System.out.println("dec pkt HERE " + decrypted_packet);
@@ -292,7 +291,7 @@ public class CloudService {
                     // Create the packet and send
                     ServerHello ServerHello_packet = new ServerHello(nonceSString, serviceName, Base64.getEncoder().encodeToString(EchoSessionKeyEncryption.getRawIv()), Base64.getEncoder().encodeToString(EncNonceC));
                     Communication.send(peer, ServerHello_packet);
-                } break;
+                }; break;
                 
                 // Client Response package
                 case ClientResponse: {
