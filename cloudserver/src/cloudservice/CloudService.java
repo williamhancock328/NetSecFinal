@@ -223,7 +223,7 @@ public class CloudService {
                     
                     // Update the document Database
                     SSE.updateDB();
-                }
+                }; break;
                 
                 case FileSend: {
                     FileSend FileSend_packet = (FileSend) packet;
