@@ -26,11 +26,13 @@ public class SessionKeyPackets implements JSONSerializable, Packet {
     private String iv;
     private String nonce;
     private String encrypted_packet;
+    private String user;
 
-    public SessionKeyPackets(String iv, String nonce, String encrypted_packet) {
+    public SessionKeyPackets(String iv, String nonce, String encrypted_packet, String user) {
         this.iv = iv;
         this.nonce = nonce;
         this.encrypted_packet = encrypted_packet;
+        this.user = user;
     }
 
     /**
@@ -85,6 +87,11 @@ public class SessionKeyPackets implements JSONSerializable, Packet {
             } else {
                 throw new InvalidObjectException("Expected an FileCreate object -- encrypted_packet expected.");
             }
+            if (tmp.containsKey("user")) {
+                this.user = tmp.getString("user");
+            } else {
+                throw new InvalidObjectException("Expected an FileCreate object -- user expected.");
+            }
         } else {
             throw new InvalidObjectException("Expected a FileCreate - Type JSONObject not found.");
         }
@@ -102,6 +109,7 @@ public class SessionKeyPackets implements JSONSerializable, Packet {
         object.put("iv", this.iv);
         object.put("nonce", this.nonce);
         object.put("encrypted_packet", this.encrypted_packet);
+        object.put("user", this.user);
 
         return object;
     }
@@ -161,5 +169,10 @@ public class SessionKeyPackets implements JSONSerializable, Packet {
         return encrypted_packet;
     }
 
+    public String getUser() {
+        return user;
+    }
 
+
+    
 }
