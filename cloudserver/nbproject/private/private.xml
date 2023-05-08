@@ -3,14 +3,8 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/Mark%20Case/Desktop/Final_NetSec/cloudserver/src/cloudServiceCrypto/EchoSessionKeyDecComm.java</file>
             <file>file:/C:/Users/Mark%20Case/Desktop/Final_NetSec/cloudserver/src/cloudServiceCrypto/EchoSessionKeyDecryption.java</file>
-            <file>file:/C:/Users/Mark%20Case/Desktop/Final_NetSec/cloudserver/src/cloudServiceCrypto/EchoSessionKeyEncryption.java</file>
-            <file>file:/C:/Users/Mark%20Case/Desktop/Final_NetSec/cloudserver/src/cloudservice/config/SSLConfig.java</file>
-            <file>file:/C:/Users/Mark%20Case/Desktop/Final_NetSec/cloudserver/src/cloudServiceCrypto/EchoTktDecryption.java</file>
-            <file>file:/C:/Users/Mark%20Case/Desktop/Final_NetSec/cloudserver/src/cloudServiceCrypto/scrypt.java</file>
-            <file>file:/C:/Users/Mark%20Case/Desktop/Final_NetSec/cloudserver/src/cloudservice/config/Config.java</file>
-            <file>file:/C:/Users/Mark%20Case/Desktop/Final_NetSec/cloudserver/src/cloudServiceCrypto/EchoSessionKeyEncComm.java</file>
+            <file>file:/C:/Users/Mark%20Case/Desktop/Final_NetSec/cloudserver/src/cloudservice/CloudService.java</file>
         </group>
     </open-files>
 </project-private>
