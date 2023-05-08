@@ -11,30 +11,26 @@ import packets.Packet;
 import packets.PacketType;
 
 /**
- * Represents a piece of a file being sent
+ * Represents a request for a fragment from the client to the server
  * Middle part to the file sending protocol.
- * This packet can used by either the client or the server.
+ * Should be used from client --> to request a fragment.
  * @author Alex
  */
-public class FileSend implements Packet, JSONSerializable, Comparable<FileSend> {
+public class FileSearchSendRequest implements Packet, JSONSerializable {
         
     // Packet Type
-    private static final PacketType PACKET_TYPE = PacketType.FileSend;
+    private static final PacketType PACKET_TYPE = PacketType.FileSearchSendRequest;
     
     // Packet Data
     private String ID; // ID of the file, this is necissary.
-    private String file_bit;
-    private int index;
-    private boolean isfinal;
+    private int last_index; // Index of the last fragment sent
 
     /**
      * Constructs a new FileSend packet
      */
-    public FileSend(String ID, String file_bit, int index, boolean isfinal) {
+    public FileSearchSendRequest(String ID, int last_index) {
         this.ID = ID;
-        this.file_bit = file_bit;
-        this.index = index;
-        this.isfinal = isfinal;
+        this.last_index = last_index;
     }
 
     /**
@@ -42,7 +38,7 @@ public class FileSend implements Packet, JSONSerializable, Comparable<FileSend> 
      * @param packet byte[] of information representing this packet
      * @throws InvalidObjectException Thrown if {@code object} is not a Ticket JSONObject
      */
-    public FileSend(String packet, PacketType packetType1) throws InvalidObjectException {
+    public FileSearchSendRequest(String packet, PacketType packetType1) throws InvalidObjectException {
         recieve(packet);
     }
 
@@ -75,22 +71,15 @@ public class FileSend implements Packet, JSONSerializable, Comparable<FileSend> 
             if (tmp.containsKey("ID"))
               this.ID = tmp.getString("ID");
             else
-              throw new InvalidObjectException("Expected an FileSend object -- ID expected.");
-            if (tmp.containsKey("file_bit"))
-              this.file_bit = tmp.getString("file_bit");
+              throw new InvalidObjectException("Expected an FileSearchSendRequest object -- ID expected.");
+            
+            if (tmp.containsKey("last_index"))
+              this.last_index = tmp.getInt("last_index");
             else
-              throw new InvalidObjectException("Expected an FileSend object -- file_bit expected.");
-            if (tmp.containsKey("index"))
-              this.index = tmp.getInt("index");
-            else
-              throw new InvalidObjectException("Expected an FileSend object -- index expected.");
-            if (tmp.containsKey("isfinal"))
-                this.setIsfinal((boolean) tmp.getBoolean("isfinal"));
-            else
-              throw new InvalidObjectException("Expected an FileSend object -- isfinal expected.");
+              throw new InvalidObjectException("Expected an FileSearchSendRequest object -- last_index expected.");
           }
           else 
-            throw new InvalidObjectException("Expected a FileSend - Type JSONObject not found.");
+            throw new InvalidObjectException("Expected a FileSearchSendRequest - Type JSONObject not found.");
     }
 
     /**
@@ -102,9 +91,8 @@ public class FileSend implements Packet, JSONSerializable, Comparable<FileSend> 
         JSONObject object = new JSONObject();
         object.put("packetType", PACKET_TYPE.toString());
         object.put("ID", this.getID());
-        object.put("file_bit", this.getFile_bit());
-        object.put("index", this.getIndex());
-        object.put("isfinal", this.isIsfinal());
+        object.put("last_index", this.getLast_index());
+
 
         return object;
     }
@@ -137,7 +125,7 @@ public class FileSend implements Packet, JSONSerializable, Comparable<FileSend> 
              JSONObject jsonObject = JsonIO.readObject(packet); // String to JSONObject
              deserialize(jsonObject); // Deserialize jsonObject
         } catch (InvalidObjectException ex) {
-            Logger.getLogger(FileSend.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(FileSearchSendRequest.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -149,51 +137,19 @@ public class FileSend implements Packet, JSONSerializable, Comparable<FileSend> 
     public PacketType getType() {
         return PACKET_TYPE;
     }
-
-    /**
-     * @return the file_bit
-     */
-    public String getFile_bit() {
-        return file_bit;
-    }
-
-    /**
-     * @return the index
-     */
-    public int getIndex() {
-        return index;
-    }
-
-    /**
-     * @return the isfinal
-     */
-    public boolean isIsfinal() {
-        return isfinal;
-    }
     
-    /**
-     * @param isfinal the isfinal to set
-     */
-    public void setIsfinal(boolean isfinal) {
-        this.isfinal = isfinal;
-    }
-
-    /**
-     * CompareTo for FileSend object.
-     * Compares if the index is greater than or not.
-     * @param o
-     * @return 
-     */
-    @Override
-    public int compareTo(FileSend o) {
-        return this.getIndex() == o.getIndex() ? 0 : (this.getIndex() > o.getIndex() ? 1 : -1 );
-    }
-
     /**
      * @return the ID
      */
     public String getID() {
         return ID;
+    }
+
+    /**
+     * @return the last_index
+     */
+    public int getLast_index() {
+        return last_index;
     }
     
 }

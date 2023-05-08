@@ -9,9 +9,11 @@ import packets.AuthRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.InvalidObjectException;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Base64;
 import merrimackutil.json.JsonIO;
 import merrimackutil.json.types.JSONObject;
 import static packets.PacketType.AuthRequest;
@@ -24,10 +26,22 @@ import packets.ClientResponse;
 import packets.CommPhase;
 import packets.HandshakeStatus;
 import packets.KeyWordSend;
+import static packets.PacketType.FileCreate;
+import static packets.PacketType.FileReceived;
+import static packets.PacketType.FileSearchRequest;
+import static packets.PacketType.FileSearchResponse;
+import static packets.PacketType.FileSend;
 import packets.ServerHello;
 import packets.SessionKeyRequest;
 import packets.SessionKeyResponse;
 import packets.Ticket;
+import packets.abstractpk.SessionKeyPackets;
+import packets.filepack.FileCreate;
+import packets.filepack.FileReceived;
+import packets.filepack.FileSearchRequest;
+import packets.filepack.FileSearchResponse;
+import packets.filepack.FileSearchSendRequest;
+import packets.filepack.FileSend;
 
 /**
  * Utility class used for sending packets across servers
@@ -109,15 +123,23 @@ public class Communication {
             throw new NullPointerException("No packet called [" + identifier + "] found.");
         }
 
+        return constructPacket(line, packetType);
+    }
+    
+    /**
+     * Constructs a packet from a line string and the packet type.
+     * @param line
+     * @param packetType
+     * @return
+     * @throws InvalidObjectException 
+     */
+    public static Packet constructPacket(String line, PacketType packetType) throws InvalidObjectException {
         // Switch over all of the packet types
         // Using a switch statement to avoid reflection
         switch (packetType) {
-            case AuthRequest:
-                return new AuthRequest(line, packetType);
-            case EnrollRequest:
-                return new EnrollRequest(line, packetType);
-            case ServerResponse:
-                return new ServerResponse(line, packetType);
+            case AuthRequest: return new AuthRequest(line, packetType);
+            case EnrollRequest: return new EnrollRequest(line, packetType);
+            case ServerResponse: return new ServerResponse(line, packetType);
             case SessionKeyRequest: return new SessionKeyRequest(line, packetType);
             case SessionKeyResponse: return new SessionKeyResponse(line, packetType);
             case ClientHello: return new ClientHello(line, packetType); 
@@ -128,10 +150,16 @@ public class Communication {
             case Ticket: return new Ticket(line, packetType);
             case KeyWordSend: return new KeyWordSend(line, packetType);
             case KeyWordRequest: return new KeyWordRequest(line, packetType);
+            case FileCreate: return new FileCreate(line, packetType);
+            case FileReceived: return new FileReceived(line, packetType);
+            case FileSearchRequest: return new FileSearchRequest(line, packetType);
+            case FileSearchSendRequest: return new FileSearchSendRequest(line, packetType);
+            case FileSearchResponse: return new FileSearchResponse(line, packetType);
+            case FileSend: return new FileSend(line, packetType);
+            case SessionKeyPackets: return new SessionKeyPackets(line, packetType);
             default:
                 return null;
         }
-
     }
 
 }

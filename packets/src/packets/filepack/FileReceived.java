@@ -26,13 +26,15 @@ public class FileReceived implements Packet, JSONSerializable {
     // Packet Data
     private boolean received; // Boolean if the file_bit was reveived with no issues
     private String fileID = ""; // May be null if the user is sending this too the server.
+    private String encrypted_filename; // Encrypted filename of the file. This should always be present.
 
     /**
      * Constructs a new FileReceived packet
      */
-    public FileReceived(boolean received, String fileID) {
+    public FileReceived(boolean received, String fileID, String encrypted_filename) {
         this.received = received;
         this.fileID = fileID;
+        this.encrypted_filename = encrypted_filename;
     }
 
     /**
@@ -78,6 +80,10 @@ public class FileReceived implements Packet, JSONSerializable {
               this.fileID = tmp.getString("fileID");
             else
               throw new InvalidObjectException("Expected an FileReceived object -- fileID expected.");
+            if (tmp.containsKey("encrypted_filename"))
+              this.encrypted_filename = tmp.getString("encrypted_filename");
+            else
+              throw new InvalidObjectException("Expected an FileReceived object -- encrypted_filename expected.");
           }
           else 
             throw new InvalidObjectException("Expected a FileSend - Type JSONObject not found.");
@@ -93,6 +99,7 @@ public class FileReceived implements Packet, JSONSerializable {
         object.put("packetType", PACKET_TYPE.toString());
         object.put("received", this.isReceived());
         object.put("fileID", this.getFileID()); // may be null / empty
+        object.put("encrypted_filename", this.getEncrypted_filename());
 
         return object;
     }
@@ -150,6 +157,13 @@ public class FileReceived implements Packet, JSONSerializable {
      */
     public String getFileID() {
         return fileID;
+    }
+
+    /**
+     * @return the encrypted_filename
+     */
+    public String getEncrypted_filename() {
+        return encrypted_filename;
     }
     
 }
