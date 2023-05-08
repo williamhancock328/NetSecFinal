@@ -22,6 +22,7 @@ public class Entry implements JSONSerializable {
         
     // Host Data
     private String ID; // (Primary Key) Represents the ID of the document in the database 
+    private String encrypted_filename; // File name encrypted with the File-Password key
     private String document; // Represents the encrypted document
     private List<String> tokens; // Represents the tokens for {@code document}
     private List<String> users; // Represents the users who have access to {@code document}
@@ -42,8 +43,9 @@ public class Entry implements JSONSerializable {
      * @param tokens
      * @param users 
      */
-    public Entry(String ID, String document, List<String> tokens, List<String> users) {
+    public Entry(String ID, String encrypted_filename, String document, List<String> tokens, List<String> users) {
         this.ID = ID;
+        this.encrypted_filename = encrypted_filename;
         this.document = document;
         this.tokens = tokens;
         this.users = users;
@@ -64,6 +66,11 @@ public class Entry implements JSONSerializable {
                 this.ID = obj.getString("ID");
             } else { throw new InvalidObjectException("Expected an Entry object -- ID expected."); }
                   
+            // Filename
+            if(obj.containsKey("encrypted_filename")) {
+                this.encrypted_filename = obj.getString("encrypted_filename");
+            } else { throw new InvalidObjectException("Expected an Entry object -- encrypted_filename expected."); }
+                    
             // Document
             if(obj.containsKey("document")) {
                 this.document = obj.getString("document");
@@ -102,6 +109,7 @@ public class Entry implements JSONSerializable {
         json_users.addAll(getUsers());
         
         obj.put("ID", this.getID());
+        obj.put("encrypted_filename", this.getEncrypted_filename());
         obj.put("document", this.getDocument());
         obj.put("tokens", json_tokens);
         obj.put("users", json_users);
@@ -140,5 +148,12 @@ public class Entry implements JSONSerializable {
     public List<String> getUsers() {
         return users;
     } 
+
+    /**
+     * @return the encrypted_filename
+     */
+    public String getEncrypted_filename() {
+        return encrypted_filename;
+    }
    
 }

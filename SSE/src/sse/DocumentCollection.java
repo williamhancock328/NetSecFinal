@@ -4,6 +4,7 @@ package sse;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import sse.files.Entry;
 
@@ -24,7 +25,17 @@ public class DocumentCollection {
      * Default Constructor
      */
     public DocumentCollection() {
-        
+        this.index_table = new HashMap<>();
+    }
+    
+    /**
+     * Inserts a pair of <{@code tokens},{@code doc}> into the index_table.
+     * @param tokens
+     * @param doc
+     * @return 
+     */
+    public EncryptedDocument Insert(List<Token> tokens, EncryptedDocument doc) {
+        return index_table.put(tokens, doc);
     }
     
     /**
@@ -58,7 +69,7 @@ public class DocumentCollection {
         for(Entry n : entries) {
             
             // Load the document
-            EncryptedDocument document = new EncryptedDocument(n.getID(), n.getDocument(), n.getUsers());
+            EncryptedDocument document = new EncryptedDocument(n.getID(), n.getEncrypted_filename(), n.getDocument(), n.getUsers());
             
             // Construct the list of Tokens
             List<Token> tokens = n.getTokens().stream().map(s -> new Token(s)).collect(Collectors.toList());
@@ -76,7 +87,7 @@ public class DocumentCollection {
     
     /**
      * Constructs 
-     * 
+     * A list of entries for the Database
      * 
      */
     public List<Entry> toEntries() {
@@ -88,12 +99,37 @@ public class DocumentCollection {
             List<String> tokens_mapped = key.stream().map(n -> n.toString()).collect(Collectors.toList());
             
             // Appends the entry to the list of returning entries
-            entries.add(new Entry(value.getID(), value.getEncoded_file(), tokens_mapped, value.getUsers()));
+            entries.add(new Entry(value.getID(), value.getEncrypted_filename(), value.getEncoded_file(), tokens_mapped, value.getUsers()));
         }
         
         return entries;
     }
      
+    /**
+     * Searches for an EncryptedDocument based on it's uuid
+     * @param uuid
+     * @return 
+     */
+    public EncryptedDocument Search(String uuid) {
+        
+        // Loop through every doccument
+        for(EncryptedDocument doc : index_table.values()) {
+            System.out.println(uuid);
+            System.out.println(doc.getID());
+            if(doc.getID().equalsIgnoreCase(uuid))
+                return doc;
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Number of EncryptedDocuements.
+     * @return 
+     */
+    public int size() {
+        return index_table.size();
+    }
     
     
 }

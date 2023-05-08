@@ -24,12 +24,15 @@ public class FileSearchResponse implements Packet, JSONSerializable {
     // Packet Data
     private boolean accessed; // Boolean if the file_bit was reveived with no issues
     private String ID = ""; // File ID of the assocaiting searched file
+    private String encrypted_filename; // Encrypted filename of the file. This should always be present.
+    
     /**
      * Constructs a new FileSearchRequest packet
      */
-    public FileSearchResponse(boolean accessed, String ID) {
+    public FileSearchResponse(boolean accessed, String ID, String encrypted_filename) {
         this.accessed = accessed;
         this.ID = ID;
+        this.encrypted_filename = encrypted_filename;
     }
 
     /**
@@ -75,6 +78,10 @@ public class FileSearchResponse implements Packet, JSONSerializable {
               this.ID = tmp.getString("ID");
             else
               throw new InvalidObjectException("Expected an FileSearchResponse object -- ID expected.");
+            if (tmp.containsKey("encrypted_filename"))
+              this.encrypted_filename = tmp.getString("encrypted_filename");
+            else
+              throw new InvalidObjectException("Expected an FileSearchResponse object -- encrypted_filename expected.");
           }
           else 
             throw new InvalidObjectException("Expected a FileSearchResponse - Type JSONObject not found.");
@@ -91,6 +98,7 @@ public class FileSearchResponse implements Packet, JSONSerializable {
         
         object.put("accessed", this.isAccessed());
         object.put("ID", this.getID());
+        object.put("encrypted_filename", this.getEncrypted_filename());
 
         return object;
     }
@@ -148,6 +156,13 @@ public class FileSearchResponse implements Packet, JSONSerializable {
      */
     public String getID() {
         return ID;
+    }
+
+    /**
+     * @return the encrypted_filename
+     */
+    public String getEncrypted_filename() {
+        return encrypted_filename;
     }
 
 }

@@ -53,7 +53,7 @@ public class Tokenizer {
         try {
             // Use AES in GCM mode. No padding is needed as
             // GCM is a streaming AEAD mode.
-            aesCipher = Cipher.getInstance("AES/GCM/NoPadding");
+            aesCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             aesCipher.init(Cipher.ENCRYPT_MODE, key, IV);
         } 
         catch(NoSuchAlgorithmException nae)
@@ -64,10 +64,12 @@ public class Tokenizer {
             Logger.getLogger(Tokenizer.class.getName()).log(Level.SEVERE, null, ex);
         } catch (InvalidAlgorithmParameterException ex) {
             Logger.getLogger(Tokenizer.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (NoSuchPaddingException ex) {
+            Logger.getLogger(Tokenizer.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        // Loop over each word
-        keywords.forEach(word -> {
+        // Loop over all of the keywords and append them to ret
+        for(String word : keywords) {
             // First encrypt the keyword with the key and Base64_IV pair
             // Then use SHA-256 to hash the encrypted string and add it to the return array as a Token object.
             try
@@ -83,13 +85,15 @@ public class Tokenizer {
                 final byte[] encrypted = aesCipher.doFinal(hash);
                                                 
                 // Add the hash to ret
-                ret.add(new Token(Base64.getEncoder().encode(encrypted)));
+                ret.add(new Token(Base64.getEncoder().encodeToString(encrypted)));
             } catch (IllegalBlockSizeException ex) {
                 Logger.getLogger(Tokenizer.class.getName()).log(Level.SEVERE, null, ex);
             } catch (BadPaddingException ex) {
                 Logger.getLogger(Tokenizer.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (NoSuchAlgorithmException ex) {
+                Logger.getLogger(Tokenizer.class.getName()).log(Level.SEVERE, null, ex);
             }
-        });
+        }
         
         return ret;
     }

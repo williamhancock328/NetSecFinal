@@ -9,7 +9,7 @@ import merrimackutil.json.types.JSONObject;
 import merrimackutil.json.types.JSONType;
 
 /**
- *
+ * Config for a server obj.
  * @author Alex
  */
 public class Config implements JSONSerializable {
@@ -20,6 +20,7 @@ public class Config implements JSONSerializable {
     private boolean debug;
     private String service_name;
     private String service_secret;
+    private String db_loc;
 
     
     public Config(String path) throws FileNotFoundException, InvalidObjectException {
@@ -65,7 +66,11 @@ public class Config implements JSONSerializable {
         if(obj.containsKey("service-secret")) {
             this.service_secret = obj.getString("service-secret");
         } else { throw new InvalidObjectException("Expected an EchoServiceConfig object -- service_secret expected."); }
-                    
+        
+        if(obj.containsKey("db_loc")) {
+            this.db_loc = obj.getString("db_loc");
+        } else { throw new InvalidObjectException("Expected an EchoServiceConfig object -- db_loc expected."); }
+              
     }
 
     @Override
@@ -75,6 +80,7 @@ public class Config implements JSONSerializable {
         obj.put("debug", this.debug);
         obj.put("service-name", this.service_name);
         obj.put("service-secret", this.service_secret);
+        obj.put("db_loc", this.getDb_loc());
         return obj; // We are never reading this file to JSON.
     }
 
@@ -108,6 +114,13 @@ public class Config implements JSONSerializable {
      */
     public String getService_secret() {
         return service_secret;
+    }
+
+    /**
+     * @return the db_loc
+     */
+    public String getDb_loc() {
+        return db_loc;
     }
 
 }

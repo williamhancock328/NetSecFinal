@@ -3,7 +3,9 @@ package sse.client;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.crypto.BadPaddingException;
@@ -12,15 +14,16 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
+import sse.Token;
 
 /**
- * 
+ * FileNameSymmetricCrypto Used for Encryption and Decryption of File Names.
  * @author Alex
  */
-public class FileSymmetricCrypto {
+public class FileNameSymmetricCrypto {
     
     /**
-     * Encrypts a file using a the file_password <Key,IV> pair
+     * Encrypts a file name using a the file_password <Key,IV> pair
      * 
      * 
      * @param file File, a file as a byte[]. 
@@ -28,7 +31,7 @@ public class FileSymmetricCrypto {
      * @param Base64_IV IV used to encrypt the tokens
      * @return a Base64 encoding of the file encrypted
      */
-    public static String encrypt(byte[] file, SecretKey key, String Base64_IV) {
+    public static String encryptFileName(String filename, SecretKey key, String Base64_IV) {
         
         IvParameterSpec IV = new IvParameterSpec(Base64.getDecoder().decode(Base64_IV));
         Cipher aesCipher = null;
@@ -44,10 +47,10 @@ public class FileSymmetricCrypto {
                 return null;
             
             // Encrypt the contents of the file with the Key and IV pair. 
-            byte[] cipher_file = aesCipher.doFinal(file);
+            byte[] encrypted = aesCipher.doFinal(filename.getBytes());
 
             // Encode the Ek(file) into Base64 and return.
-            return Base64.getEncoder().encodeToString(cipher_file);
+            return Base64.getEncoder().encodeToString(encrypted);
         } 
         catch(NoSuchAlgorithmException nae)
         {
@@ -71,12 +74,12 @@ public class FileSymmetricCrypto {
     /**
      * Decrypts a file using a the file_password <Key,IV> pair
      * 
-     * @param cipher_text Encrypted File represented as the file text
+     * @param cipher_text_file_name Encrypted File Name represented as the file text
      * @param key Key used to encrypt the tokens
      * @param Base64_IV IV used to encrypt the tokens
-     * @return a Base64 encoding of the file encrypted
+     * @return a Base64 encoding of the file name {@code cipher_text_file_name}
      */
-    public static byte[] decrypt(String cipher_text, SecretKey key, String Base64_IV) {
+    public static String decryptFileName(String cipher_text_file_name, SecretKey key, String Base64_IV) {
         
         IvParameterSpec IV = new IvParameterSpec(Base64.getDecoder().decode(Base64_IV));
         Cipher aesCipher = null;
@@ -87,12 +90,12 @@ public class FileSymmetricCrypto {
             aesCipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             aesCipher.init(Cipher.DECRYPT_MODE, key, IV);
             
-            byte[] decoded_cipher_text = Base64.getDecoder().decode(cipher_text);
+            byte[] decoded_cipher_text = Base64.getDecoder().decode(cipher_text_file_name);
             
             // Decrypt the cipher text
             byte[] decrypted = aesCipher.doFinal(decoded_cipher_text);
 
-            return decrypted;
+            return new String(decrypted);
         } 
         catch(NoSuchAlgorithmException nae)
         {

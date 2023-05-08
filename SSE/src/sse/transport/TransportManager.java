@@ -34,7 +34,10 @@ public class TransportManager {
      * @param ID
      * @param packet 
      */
-    public void received(String ID, FileSend packet) {
+    public void received(FileSend packet) {
+        
+        String ID = packet.getID(); // ID of the document
+        
         // Add FileSend to the list
         if(transport_table.containsKey(ID)) {
             transport_table.get(ID).add(packet);
@@ -63,8 +66,6 @@ public class TransportManager {
         
         // Sort the collection
         Collections.sort(ref);
-        // Reverse ref so that the first index is 0 and the last is the heighst.
-        Collections.reverse(ref);
         
         // Collect all of the file bits into the builder, in order (0-n).
         for(int i = 0; i < ref.size(); i++) {
@@ -80,7 +81,7 @@ public class TransportManager {
      * FileSend packets if necessary
      * @return 
      */
-    public List<FileSend> fromEncodedFile(String encoded_file) {
+    public List<FileSend> fromEncodedFile(String ID, String encoded_file) {
         final int encoded_fragment_length = 1000; // Each fragment should consist of no more than 1000 bytes.
         
         // Loop through {@code encoded_file} every encoded_fragment_length until the end of the file is reached.
@@ -94,11 +95,13 @@ public class TransportManager {
         // Loop through each fragment in results and add it too ret        
         List<FileSend> ret = new ArrayList<>();
         for(int i = 0; i < results.size(); i++) {
-            ret.add(new FileSend(results.get(i), i, false));
+            ret.add(new FileSend(ID, results.get(i), i, false));
         }
         
         // Get the last element of ret, and set isfinal to true.
         ret.get(ret.size()-1).setIsfinal(true);
+        
+        //System.out.println( "size: " + ret.size() + " " + (ret.get(ret.size()-1).isIsfinal()) );
         
         return ret;
     }
@@ -110,6 +113,16 @@ public class TransportManager {
      */
     public List<FileSend> removeIndicies(String ID) {
         return transport_table.remove(ID);
+    }
+    
+    /**
+     * Retrieves a FileSend with the associating index
+     * @param list List<FileSend> list
+     * @param index index value to be received
+     * @return a FileSend if one is found with FileSend.index == {@code index}, or else null
+     */
+    public FileSend getFileSendWithIndex(List<FileSend> list, int index) {
+        return list.stream().filter(n -> n.getIndex() == index).findFirst().orElse(null);
     }
     
 }

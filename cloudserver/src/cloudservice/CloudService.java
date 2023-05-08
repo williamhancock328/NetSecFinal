@@ -17,9 +17,12 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
@@ -27,6 +30,8 @@ import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import merrimackutil.cli.LongOption;
 import merrimackutil.cli.OptionParser;
+import merrimackutil.json.JsonIO;
+import merrimackutil.json.types.JSONObject;
 import merrimackutil.util.NonceCache;
 import merrimackutil.util.Tuple;
 import packets.ClientHello;
@@ -37,8 +42,20 @@ import packets.KeyWordRequest;
 import packets.KeyWordSend;
 import packets.PacketType;
 import static packets.PacketType.ClientHello;
+import static packets.PacketType.FileSearchSendRequest;
 import packets.ServerHello;
 import packets.Ticket;
+import packets.abstractpk.SessionKeyPackets;
+import packets.filepack.FileCreate;
+import packets.filepack.FileReceived;
+import packets.filepack.FileSearchRequest;
+import packets.filepack.FileSearchResponse;
+import packets.filepack.FileSearchSendRequest;
+import packets.filepack.FileSend;
+import sse.EncryptedDocument;
+import sse.SSE;
+import sse.Token;
+import sse.transport.TransportManager;
 
 public class CloudService {
 
@@ -50,6 +67,9 @@ public class CloudService {
     private static byte[] serverSidesessionKey;
     private static boolean handshakeStatus = false;
     private static NonceCache nc = new NonceCache(32, 30);
+    
+    private static SSE SSE; // SSE object managing Documents & Files
+    private static TransportManager transportManager;
 
     public static void main(String[] args) throws FileNotFoundException, InvalidObjectException, NoSuchPaddingException, InvalidKeySpecException, InvalidKeyException, IllegalBlockSizeException, InvalidAlgorithmParameterException, BadPaddingException {
         OptionParser op = new OptionParser(args);
@@ -71,8 +91,16 @@ public class CloudService {
                     + " -h, --help Display the help.");
             System.exit(0);
         } else if (Objects.equals(opt.getFirst(), 'c')) {
+            
             // Initialize config
             config = new Config(opt.getSecond());
+            
+            // Construct a new SSE file which will construct a DocumentCollection object and load in all the Entries
+            SSE = new SSE(config.getDb_loc());
+            
+            // Construct a new Transport Manager
+            transportManager = new TransportManager();
+            
             opt = op.getLongOpt(false);
             if (Objects.equals(opt.getFirst(), 'a')) {
                 sslconfig = new SSLConfig(opt.getSecond());
@@ -111,6 +139,9 @@ public class CloudService {
         }
     }
 
+    // Maps the ID of a document to a list of file sends for the FileSearchSendRequest packet
+    private static HashMap<String, List<FileSend>> fileSendMap = new HashMap();
+    
     /**
      * Waits for a connection with a peer socket, then polls for a message being
      * sent. Each iteration of the loop operates for one message, as not to
@@ -132,12 +163,178 @@ public class CloudService {
 
             // Determine the packet type.
             System.out.println("Waiting for a packet...");
-            final Packet packet = Communication.read(peer);
+            Packet packet = Communication.read(peer);
 
+            if(packet.getType() == PacketType.SessionKeyPackets) {
+                SessionKeyPackets SessionKeyPackets_packet = (SessionKeyPackets) packet;
+
+                String encPacket = SessionKeyPackets_packet.getEncrypted_packet();
+                String iv = SessionKeyPackets_packet.getIv();
+                String user = SessionKeyPackets_packet.getUser();
+
+                //System.out.println("enc pkt: " + encPacket);
+               
+                byte[] decPacket = EchoSessionKeyDecryption.decrypt(encPacket, iv, user, serverSidesessionKey);
+                // Decode the decrypted packet from Base64
+            
+                // Reconstruct the FileCreate object using the decoded bytes
+                String decrypted_packet = new String(decPacket);
+                
+                //System.out.println("dec pkt HERE " + decrypted_packet);
+   
+                JSONObject object = JsonIO.readObject(decrypted_packet); // All packets are type JSON object with identifier "packetType"
+                String identifier = object.getString("packetType");
+                PacketType packetType = PacketType.getPacketTypeFromString(identifier);
+                
+                // Assign the decrypted packet to the polling packet from the SessionKeyPacket
+                packet = Communication.constructPacket(decrypted_packet, packetType);
+            }
+            
             System.out.println("Packet Recieved: [" + packet.getType().name() + "]");
 
             // Switch statement only goes over packets expected by the KDC, any other packet will be ignored.
             switch (packet.getType()) {
+
+                case FileSearchSendRequest: {
+                    
+                    FileSearchSendRequest fssr_Packet = (FileSearchSendRequest) packet;
+                    
+                    // Get the next index 
+                    int index = fssr_Packet.getLast_index()+1;
+                    
+                    // Search for the FileToSend
+                    FileSend fileSend = transportManager.getFileSendWithIndex(fileSendMap.get(fssr_Packet.getID()), index);
+                    
+                    // FileSend was not found, send error response to peer
+                    if(fileSend == null) {
+                        FileSend err_fileSend = new FileSend(fssr_Packet.getID(), null, index, true);
+                        Communication.send(peer, err_fileSend);
+                    } 
+                    // FileSend was found, send it to peer
+                    else {
+                        Communication.send(peer, fileSend);
+                    }
+                }; break;
+                
+                case FileSearchRequest: {
+                    
+                    FileSearchRequest fileSearchRequest = (FileSearchRequest) packet;
+                    
+                    List<EncryptedDocument> eDocs = new ArrayList<>();
+                    // Look for a document with the associating Tokens
+                    for(String keyword : fileSearchRequest.getKeywords()) {
+                        Token token = new Token(keyword);
+                        
+                        // Find all the EncryptedDocuments with a token
+                        // Add to eDocs array
+                        eDocs.addAll(SSE.Search(token));
+                    }
+                    
+                    boolean accessed = false;
+                    
+                    // If eDocs is empty, return accessed false
+                    if(eDocs.isEmpty()) {
+                        FileSearchResponse fileSearchResponse = new FileSearchResponse(false, "", "");
+                        Communication.send(peer, fileSearchResponse);
+                        break;
+                    } 
+                    // Else Loop through all of the eDocs, if any users match, return the file, else return failed response
+                    else {
+                        for(EncryptedDocument doc : eDocs) {
+                            if(doc.getUsers().contains(fileSearchRequest.getUsername())) {
+                                // Construct the List<FileSend> for doc.
+                                List<FileSend> fileSends = transportManager.fromEncodedFile(doc.getID(), doc.getEncoded_file());
+                                // Append fileSends to fileSendMap to be accessed by FileSearchSendRequest later.
+                                fileSendMap.put(doc.getID(), fileSends);
+                                
+                                // Set accessed to true
+                                accessed = true;
+
+                                // Send an accepting response too the client
+                                FileSearchResponse fileSearchResponse = new FileSearchResponse(true, doc.getID(), doc.getEncrypted_filename());
+                                Communication.send(peer, fileSearchResponse);
+                                
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if(!accessed) {
+                        FileSearchResponse fileSearchResponse = new FileSearchResponse(false, "", "");
+                        Communication.send(peer, fileSearchResponse);
+                    }
+                    
+                }; break;
+                
+                case FileCreate: {
+                    
+//                    //System.out.println("Server side enc. keywords:" + ctKeywords);
+//                    //System.out.println("key word iv: " + iv);
+//                    //System.out.println("Server side enc. nonce:" + ct_stringNonceD);
+//                    //byte[] nonce = EchoSessionKeyDecryption.decrypt(ct_stringNonceD, iv, user, serverSidesessionKey);
+//                    byte[] byteKeywords = EchoSessionKeyDecryption.decrypt(ctKeywords, iv, user, serverSidesessionKey);
+//                    //String decrypted_keywords = Base64.getEncoder().encodeToString(byteKeywords);
+//                    //byte[] decodedBytes = Base64.getDecoder().decode(encoded);
+//                    String decodedString = new String(byteKeywords);
+//
+//                    System.out.println("Decryped keywords!!! ->" + decodedString);
+//                    //System.out.println("iv2 ->" + KeyWordSend_packet.getIv2());
+//
+//                    byte[] byteNonceD = EchoSessionKeyDecryption.decrypt(ct_stringNonceD, iv2, user, serverSidesessionKey);
+//                    String ptNonce = Base64.getEncoder().encodeToString(byteNonceD);
+//                    System.out.println("Decrypted nonce -> " + ptNonce);
+  
+                    
+                    
+                    FileCreate fileCreate = (FileCreate) packet;
+                    
+                    // Construct a new EncryptedDocument
+                    EncryptedDocument eDocument = new EncryptedDocument(fileCreate.getEncrypted_filename(), fileCreate.getUsers());
+                                        
+                    // Add the file too the Document_Collection
+                    SSE.Insert(fileCreate.getTokens().stream().map(n -> new Token(n)).collect(Collectors.toList()), eDocument);
+                    
+                    // Update the document Database
+                    SSE.updateDB();
+                    
+                    // Return a FileReceived Packet
+                    FileReceived fileReceived_Packet = new FileReceived(true, eDocument.getID(), eDocument.getEncrypted_filename());
+                    Communication.send(peer, fileReceived_Packet);
+                }; break;
+                
+                case FileSend: {
+                    FileSend FileSend_packet = (FileSend) packet;
+                                        
+                    // Add the packet as received
+                    transportManager.received(FileSend_packet);
+                    
+                    // If this is the last packet, build the encoded_file and add it to the document with {@code ID}
+                    if(FileSend_packet.isIsfinal()) {
+                        
+                        // Find the existing EncryptedDocument
+                        EncryptedDocument eDocument = SSE.Search(FileSend_packet.getID());
+                        
+                        if(eDocument == null)
+                            throw new NullPointerException("EncryptedDocument isn't working.");
+                        
+                        // Build the encoded_file.
+                        String encoded_file = transportManager.toEncodedFile(FileSend_packet.getID());
+                        
+                        // Assign the encoded_file to eDocument
+                        eDocument.setEncoded_file(encoded_file);
+                                                
+                        System.out.println("Updated DB");
+                        // Update the document Database
+                        SSE.updateDB();
+                    } 
+                    
+                    // If this is not the last packet, add it to the TransportManager
+                    FileReceived fileReceived_Packet = new FileReceived(true, FileSend_packet.getID(), "");
+                    Communication.send(peer, fileReceived_Packet);
+                }; break;
+                
+                
+                
                 // ClientHello package
                 case ClientHello: {
                     // MESSAGE 2:  decrypt ticket + send fresh nonceS, iv, and encryption of fresh nonceS
@@ -178,8 +375,8 @@ public class CloudService {
                     // Create the packet and send
                     ServerHello ServerHello_packet = new ServerHello(nonceSString, serviceName, Base64.getEncoder().encodeToString(EchoSessionKeyEncryption.getRawIv()), Base64.getEncoder().encodeToString(EncNonceC));
                     Communication.send(peer, ServerHello_packet);
-                }
-                break;
+                }; break;
+                
                 // Client Response package
                 case ClientResponse: {
                     //MESSAGE 4: Received client response, let's check nonce validity and give a status
@@ -201,9 +398,7 @@ public class CloudService {
 
                     }
 
-                }
-                ;
-                break;
+                }; break;
 
                 //Cloud Server receives key words to add to new file
                 case KeyWordSend: {
@@ -244,9 +439,7 @@ public class CloudService {
                         System.out.println("Replay attack detected");
                         System.exit(0);
                     }
-                }
-                ;
-                break;
+                }; break;
 
                 //Cloud server receives key words to search new file
                 case KeyWordRequest: {
@@ -287,9 +480,7 @@ public class CloudService {
                         System.out.println("Replay attack detected");
                         System.exit(0);
                     }
-                }
-                ;
-                break;
+                }; break;
 
             }
         }

@@ -1,17 +1,22 @@
 package sse.files;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InvalidObjectException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import merrimackutil.json.JSONSerializable;
 import merrimackutil.json.JsonIO;
 import merrimackutil.json.types.JSONArray;
 import merrimackutil.json.types.JSONObject;
 import merrimackutil.json.types.JSONType;
-import sse.DocumentCollection;
 
 /**
  * Represents the database that holds values of EncryptedDocuments
@@ -21,14 +26,17 @@ public class Database implements JSONSerializable {
     
     private String path;
     
-    public Database(String path) throws FileNotFoundException, InvalidObjectException {
+    public Database(String path) throws FileNotFoundException, InvalidObjectException, IOException {
         this.path = path;
         
         // Construct file
         File file = new File(path);
         
         if(file == null || !file.exists()) {
-            throw new FileNotFoundException("File from path for EchoServiceConfig does not point to a vadlid configuration json file.");
+            //throw new FileNotFoundException("File from path for EchoServiceConfig does not point to a vadlid configuration json file.");
+            file.createNewFile(); // Construct a new file and add nothing to the documents database
+            update();
+            return;
         }
         
         // Construct JSON Object and load entries
@@ -69,12 +77,38 @@ public class Database implements JSONSerializable {
     @Override
     public JSONType toJSONType() {
         JSONObject obj = new JSONObject();
-        JSONArray entries = new JSONArray();
         
-        entries.addAll(sse.SSE.getDocCollection().toEntries());
-        
-        obj.put("entries", entries); // Assign the entries array.
+        ArrayList<JSONType> secretList = new ArrayList<>();
+        List<Entry> entry_list = sse.SSE.getDocCollection().toEntries();
+
+        for (Entry s : entry_list)
+        {
+            secretList.add(s.toJSONType());
+        }
+
+        System.out.println("Entry List Size: " + entry_list.size());
+       
+        obj.put("entries", new JSONArray(secretList)); // Assign the entries array.
         return obj; // We are never reading this file to JSON.
+    }
+    
+    /**
+     * Updates this database
+     */
+    public void update() {
+        try
+        {      
+         BufferedWriter writer = new BufferedWriter(new FileWriter(new File(path)));
+         writer.write(serialize());
+         writer.close();
+        }
+        catch (FileNotFoundException ex)
+        {
+          System.out.println("Could not save vault to disk.");
+          System.out.println(ex);
+        } catch (IOException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
 }
