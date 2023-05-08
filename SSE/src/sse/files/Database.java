@@ -1,11 +1,15 @@
 package sse.files;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import merrimackutil.json.JSONSerializable;
 import merrimackutil.json.JsonIO;
@@ -85,13 +89,17 @@ public class Database implements JSONSerializable {
      */
     public void update() {
         try
-        {
-          JsonIO.writeSerializedObject(this, new File(this.path));
+        { 
+         BufferedWriter writer = new BufferedWriter(new FileWriter(new File(path)));
+         writer.write(serialize());
+         writer.close();
         }
         catch (FileNotFoundException ex)
         {
           System.out.println("Could not save vault to disk.");
           System.out.println(ex);
+        } catch (IOException ex) {
+            Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
